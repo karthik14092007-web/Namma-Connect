@@ -9,8 +9,10 @@ from backend.app.services import notification_service
 router = APIRouter(tags=["Notifications"])
 
 
+@router.get("")
 @router.get("/")
 def list_notifications(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+
     result = notification_service.get_user_notifications(db, current_user["id"])
     return {
         "success": True,

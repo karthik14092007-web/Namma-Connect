@@ -10,6 +10,7 @@ from backend.app.schemas.campaign import CampaignCreate
 router = APIRouter(tags=["Campaigns"])
 
 
+@router.get("")
 @router.get("/")
 def list_campaigns(current_user: Optional[dict] = Depends(get_optional_current_user), db: Session = Depends(get_db)):
     founder_id = current_user.get("id") if current_user else None
@@ -20,8 +21,10 @@ def list_campaigns(current_user: Optional[dict] = Depends(get_optional_current_u
     }
 
 
+@router.post("", status_code=status.HTTP_201_CREATED)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_campaign(
+
     data: CampaignCreate,
     request: Request,
     current_user: dict = Depends(get_current_user),

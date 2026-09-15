@@ -212,6 +212,30 @@ def resolve_score_from_answer(question: Dict[str, Any], answer: Any) -> int:
     return 0
 
 
+QUESTION_KEY_ALIASES = {
+    "product.standardization": "product.market_readiness",
+    "product.purchase_validation": "product.shelf_life",
+    "product.feedback_collection": "product.customer_feedback",
+    "product.feedback_iteration": "product.certifications",
+    "sales.consistency": "sales.repeat_rate",
+    "sales.revenue_tracking": "sales.revenue_predictability",
+    "sales.defined_process": "sales.sales_channel",
+    "sales.analytics_economics": "sales.unit_margins",
+    "branding.positioning_clarity": "branding.positioning_clarity",
+    "branding.differentiation": "branding.differentiation",
+    "branding.visual_identity": "branding.visual_identity",
+    "branding.messaging_story": "branding.packaging_experience",
+    "reach.audience_access": "reach.local_density",
+    "reach.distribution_channels": "reach.digital_footprint",
+    "reach.organic_discovery": "reach.retail_partners",
+    "reach.geographic_expansion": "reach.organic_advocacy",
+    "funding.financial_records": "funding.accounting_books",
+    "funding.capital_budgeting": "funding.business_plan",
+    "funding.compliance_readiness": "funding.scheme_awareness",
+    "funding.pitch_materials": "funding.pitch_narrative"
+}
+
+
 def calculate_diagnostic_score(
     responses: List[Dict[str, Any]],
     stage: str = "EARLY_TRACTION",
@@ -227,12 +251,19 @@ def calculate_diagnostic_score(
 
     weights = STAGE_WEIGHTS[normalized_stage]
 
-    # Map responses by key or question id
+    # Map responses by key, alias, or factor
     response_map = {}
+    factor_responses = {f: [] for f in ["PRODUCT", "SALES", "BRANDING", "MARKETING", "REACH", "FUNDING"]}
+
     for r in responses:
         k = r.get("questionKey") or r.get("id") or r.get("question_key")
+        f = (r.get("factor") or "").upper()
+        if f in factor_responses:
+            factor_responses[f].append(r)
         if k:
             response_map[k] = r
+            if k in QUESTION_KEY_ALIASES:
+                response_map[QUESTION_KEY_ALIASES[k]] = r
 
     factor_results = {}
     category_scores = {}
@@ -247,10 +278,12 @@ def calculate_diagnostic_score(
         factor_answered = 0
         evidences = []
 
-        for q in questions:
+        for idx, q in enumerate(questions):
             user_resp = response_map.get(q["key"]) or response_map.get(q["id"])
-            score_val = 0
+            if not user_resp and idx < len(factor_responses.get(factor, [])):
+                user_resp = factor_responses[factor][idx]
 
+            score_val = 0
             if user_resp:
                 factor_answered += 1
                 total_answered_count += 1
@@ -258,6 +291,7 @@ def calculate_diagnostic_score(
                 score_val = resolve_score_from_answer(q, raw_ans)
             else:
                 score_val = 0
+
 
             sum_score += score_val
             evidences.append({
@@ -330,7 +364,7 @@ def calculate_diagnostic_score(
     if primary_gap and primary_gap["factor"] == "MARKETING":
         next_best_action = {
             "title": f"Sharpen {brand_name}'s Ideal Customer Profile",
-            "priority": "HIGH",
+            "priority": "CRITICAL" if primary_gap["score"] < 60 else "HIGH",
             "reason": "Marketing readiness is limited by lack of repeatable customer acquisition channels.",
             "effort": "LOW",
             "action": "Define Target Customer & Sharpen Positioning"
@@ -338,7 +372,7 @@ def calculate_diagnostic_score(
     elif primary_gap and primary_gap["factor"] == "BRANDING":
         next_best_action = {
             "title": f"Clarify {brand_name}'s D2C Value Proposition",
-            "priority": "HIGH",
+            "priority": "CRITICAL" if primary_gap["score"] < 60 else "HIGH",
             "reason": "Brand messaging lacks clear differentiation against established competitors.",
             "effort": "MEDIUM",
             "action": "Establish Consistent Visual Identity"
@@ -346,19 +380,24 @@ def calculate_diagnostic_score(
     else:
         next_best_action = {
             "title": f"Audit {brand_name}'s Unit Economics",
-            "priority": "HIGH",
+            "priority": "CRITICAL" if (primary_gap and primary_gap["score"] < 60) else "HIGH",
             "reason": "Repeat customer rate and contribution margin require optimization before scale.",
             "effort": "MEDIUM",
             "action": "Optimize Repeat Purchases & Margins"
         }
 
+    status_str = "Ready for Focused Growth" if overall_score >= 60 else "Developing"
+
     return {
         "scoringVersion": SCORING_VERSION,
         "stage": normalized_stage,
         "overallScore": overall_score,
+        "status": status_str,
+        "scoreStatus": status_str,
         "confidence": confidence,
         "confidenceReason": confidence_reason,
         "factorScores": factor_results,
+
         "categoryScores": category_scores,
         "topGaps": top_gaps,
         "nextBestAction": next_best_action,

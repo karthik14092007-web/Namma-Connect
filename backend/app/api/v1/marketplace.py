@@ -10,8 +10,10 @@ from backend.app.schemas.marketplace import ProductCreate
 router = APIRouter(tags=["Marketplace"])
 
 
+@router.get("")
 @router.get("/")
 def list_products(
+
     category: Optional[str] = None,
     search: Optional[str] = None,
     page: int = 1,

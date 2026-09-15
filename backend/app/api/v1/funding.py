@@ -10,8 +10,10 @@ from backend.app.schemas.funding import FundingApplicationCreate
 router = APIRouter(tags=["Funding"])
 
 
+@router.get("")
 @router.get("/")
 def list_opportunities(
+
     page: int = 1,
     limit: int = 20,
     current_user: Optional[dict] = Depends(get_optional_current_user),

@@ -11,8 +11,10 @@ from backend.app.rules.diagnostic_rules import DIAGNOSTIC_QUESTIONS
 router = APIRouter(tags=["Diagnostics"])
 
 
+@router.post("", status_code=status.HTTP_201_CREATED)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def submit_diagnostic(data: AssessmentSubmitRequest, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+
     business_id = data.businessId
     if not business_id and db:
         biz = db.query(Business).filter(Business.founder_id == current_user["id"]).first()

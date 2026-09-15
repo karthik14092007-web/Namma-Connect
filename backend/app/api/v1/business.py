@@ -10,6 +10,7 @@ from backend.app.services import business_service
 router = APIRouter(tags=["Business"])
 
 
+@router.get("")
 @router.get("/")
 def list_my_businesses(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     businesses = business_service.get_businesses_for_founder(db, current_user["id"])
@@ -35,8 +36,10 @@ def list_my_businesses(current_user: dict = Depends(get_current_user), db: Sessi
     }
 
 
+@router.post("", status_code=status.HTTP_201_CREATED)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_business(data: BusinessCreate, request: Request, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+
     client_ip = request.client.host if request.client else None
     biz = business_service.create_business(db, current_user["id"], data.model_dump(), ip_address=client_ip)
     return {

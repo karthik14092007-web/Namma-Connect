@@ -10,8 +10,10 @@ from backend.app.schemas.mentor import MentorMatchRequest
 router = APIRouter(tags=["Mentors"])
 
 
+@router.get("")
 @router.get("/")
 def list_mentors(current_user: Optional[dict] = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+
     founder_id = current_user.get("id") if current_user else None
     mentors = mentor_service.list_mentors(db, founder_id)
     return {
