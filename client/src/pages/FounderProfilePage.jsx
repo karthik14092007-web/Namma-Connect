@@ -13,6 +13,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
 
 export default function FounderProfilePage({ setCurrentView }) {
   const { activeFounder, products } = useFounder();
@@ -24,40 +26,36 @@ export default function FounderProfilePage({ setCurrentView }) {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
       {/* ---------------- Profile Header Banner ---------------- */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
         {/* Cover Header */}
-        <div className="h-36 bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 relative">
-          <div className="absolute top-4 right-4 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-400/40 backdrop-blur-xs">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Verified Founder
-            </span>
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/30 text-amber-300 text-xs font-bold border border-amber-400/40 backdrop-blur-xs">
-              <Award className="w-3.5 h-3.5" />
-              Proof of Work
-            </span>
-          </div>
+        <div className="h-32 sm:h-36 bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 relative p-4 sm:p-6 flex items-start justify-end gap-2">
+          <Badge variant="verified" size="md" className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30 backdrop-blur-xs">
+            VERIFIED FOUNDER
+          </Badge>
+          <Badge variant="proofOfWork" size="md" className="bg-amber-500/20 text-amber-300 border-amber-400/30 backdrop-blur-xs">
+            PROOF OF WORK
+          </Badge>
         </div>
 
         {/* Profile Info Row */}
         <div className="px-6 pb-6 pt-0 relative sm:flex items-end justify-between gap-6">
           <div className="sm:flex items-end gap-5 -mt-12">
-            <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-md border border-slate-200">
+            <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-md border border-slate-200 shrink-0">
               <div className="w-full h-full rounded-xl bg-brand-700 text-white flex items-center justify-center text-3xl font-black font-sans shadow-inner">
                 {activeFounder.founderName ? activeFounder.founderName[0] : 'K'}
               </div>
             </div>
-            <div className="mt-3 sm:mt-0">
+            <div className="mt-3 sm:mt-0 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold text-slate-900">
+                <h1 className="text-2xl font-black text-slate-900 truncate">
                   {activeFounder.founderName}
                 </h1>
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Founder at <strong className="text-slate-800">{activeFounder.brandName}</strong> • {activeFounder.industry}
+              <p className="text-xs sm:text-sm text-slate-600 font-semibold truncate">
+                Founder at <strong className="text-slate-900">{activeFounder.brandName}</strong> • {activeFounder.industry}
               </p>
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
                 <span className="flex items-center gap-1">
@@ -65,26 +63,28 @@ export default function FounderProfilePage({ setCurrentView }) {
                   {activeFounder.location}
                 </span>
                 <span>•</span>
-                <span className="font-semibold text-emerald-700">
+                <span className="font-bold text-emerald-700">
                   Stage: {activeFounder.businessStage}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 sm:mt-0 flex items-center gap-2">
-            <button
+          <div className="mt-4 sm:mt-0 flex items-center gap-2 shrink-0">
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => setCurrentView('roadmap')}
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
             >
               View Growth Plan
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setCurrentView('mentors')}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
             >
               Find Mentor Match
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -95,18 +95,18 @@ export default function FounderProfilePage({ setCurrentView }) {
         <div className="lg:col-span-8 space-y-6">
           {/* Brand Story */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-6 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               The Brand Story
             </h2>
             <p className="text-sm text-slate-700 leading-relaxed">
               {activeFounder.brandStory}
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs">
-              <span className="bg-slate-100 px-3 py-1 rounded-lg text-slate-600">
+              <span className="bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-medium">
                 Primary Market: <strong>{activeFounder.primaryMarket}</strong>
               </span>
-              <span className="bg-slate-100 px-3 py-1 rounded-lg text-slate-600">
-                Model: <strong>{activeFounder.businessModel}</strong>
+              <span className="bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-medium">
+                Business Model: <strong>{activeFounder.businessModel}</strong>
               </span>
             </div>
           </div>
@@ -114,12 +114,12 @@ export default function FounderProfilePage({ setCurrentView }) {
           {/* Products by this founder */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Showcase Products ({founderProducts.length || 1})
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                Showcase Products
               </h2>
               <button
                 onClick={() => setCurrentView('marketplace')}
-                className="text-xs font-bold text-brand-700 hover:underline"
+                className="text-xs font-bold text-brand-700 hover:underline cursor-pointer"
               >
                 Go to Marketplace →
               </button>
@@ -129,16 +129,16 @@ export default function FounderProfilePage({ setCurrentView }) {
               {(founderProducts.length > 0 ? founderProducts : products.slice(0, 1)).map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition-colors gap-3"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={p.image}
                       alt={p.name}
-                      className="w-14 h-14 rounded-xl object-cover border border-slate-200"
+                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0"
                     />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900">{p.name}</h4>
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{p.name}</h4>
                       <p className="text-[11px] text-slate-500">{p.unit} • ₹{p.price}</p>
                       <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold mt-0.5">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -146,12 +146,14 @@ export default function FounderProfilePage({ setCurrentView }) {
                       </div>
                     </div>
                   </div>
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setCurrentView('marketplace')}
-                    className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800"
+                    className="shrink-0"
                   >
                     View
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -159,8 +161,8 @@ export default function FounderProfilePage({ setCurrentView }) {
 
           {/* Customer Reviews */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-6 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Recent Customer Reviews (Proof of Demand)
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+              Customer Reviews (Proof of Demand)
             </h2>
             <div className="space-y-3">
               {[
@@ -193,28 +195,28 @@ export default function FounderProfilePage({ setCurrentView }) {
           </div>
         </div>
 
-        {/* Right 4 cols: Proof of Work & Certifications */}
+        {/* Right 4 cols: Proof of Work & Badges */}
         <div className="lg:col-span-4 space-y-6">
           {/* Growth Score Badge Card */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5 text-center space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Verified Brand Growth Score
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+              Verified Growth Score
             </span>
-            <div className="text-3xl font-extrabold text-slate-900 font-sans">
+            <div className="text-3xl font-black text-slate-900 font-sans">
               {activeFounder.growthScore} / 100
             </div>
-            <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <Badge variant="success" size="md">
               {activeFounder.scoreStatus}
-            </span>
+            </Badge>
             <p className="text-[11px] text-slate-500 pt-1">
-              Top gap: <strong className="text-amber-700">{activeFounder.topGaps?.[0]?.dimension}</strong>
+              Top gap: <strong className="text-amber-800">{activeFounder.topGaps?.[0]?.dimension}</strong>
             </p>
           </div>
 
-          {/* Certifications & Compliance */}
+          {/* Certifications */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Certifications & Badges
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+              Certifications & Compliance
             </h3>
             <div className="space-y-2">
               {(activeFounder.certifications || [
@@ -222,7 +224,7 @@ export default function FounderProfilePage({ setCurrentView }) {
                 '100% Roasted Not Fried',
                 'Locally Sourced Millets'
               ]).map((cert, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+                <div key={i} className="flex items-center gap-2 text-xs text-slate-700 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{cert}</span>
                 </div>
@@ -230,9 +232,9 @@ export default function FounderProfilePage({ setCurrentView }) {
             </div>
           </div>
 
-          {/* Achievements & Traction Milestones */}
+          {/* Achievements */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               Verified Proof of Work
             </h3>
             <div className="space-y-2.5">

@@ -8,8 +8,7 @@ import {
   Megaphone,
   TrendingUp,
   BarChart3,
-  ShieldAlert,
-  ArrowUpRight
+  ShieldAlert
 } from 'lucide-react';
 import {
   AreaChart,
@@ -20,11 +19,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
+import Badge from '../components/ui/Badge';
 
 export default function AdminPage() {
   const [adminData, setAdminData] = useState(null);
@@ -76,20 +73,18 @@ export default function AdminPage() {
     { scheme: 'Mudra Loans', applicants: 52, approved: 34 }
   ];
 
-  const COLORS = ['#0f766e', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6'];
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
       {/* ---------------- Header ---------------- */}
       <div className="pb-4 border-b border-slate-200">
-        <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+        <Badge variant="brand" size="md" className="mb-1.5">
           Ecosystem Observatory
-        </span>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+        </Badge>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Namma-Connect Platform Admin & Analytics
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          System health, founder onboarding velocity, and regional economic impact.
+          Real-time metrics on founder onboarding velocity, advisor engagement, and funding distribution.
         </p>
       </div>
 
@@ -110,14 +105,14 @@ export default function AdminPage() {
               className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400">
+                <span className="text-[10px] uppercase font-extrabold text-slate-400 truncate pr-1">
                   {m.label}
                 </span>
-                <div className={`p-1.5 rounded-lg ${m.color}`}>
+                <div className={`p-1.5 rounded-lg shrink-0 ${m.color}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-2xl font-black text-slate-900 font-sans tracking-tight">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 font-sans tracking-tight">
                 {m.val}
               </div>
             </div>
@@ -131,12 +126,12 @@ export default function AdminPage() {
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-soft space-y-4">
           <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Founder & Brand Onboarding</h3>
-              <p className="text-xs text-slate-500">Monthly new registrations</p>
+              <h3 className="text-sm font-bold text-slate-900">Founder & Brand Registrations</h3>
+              <p className="text-xs text-slate-500">Monthly new founder volume</p>
             </div>
-            <span className="text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+            <Badge variant="brand" size="sm">
               +38% MoM
-            </span>
+            </Badge>
           </div>
 
           <div className="h-64 w-full">
@@ -180,9 +175,9 @@ export default function AdminPage() {
               <h3 className="text-sm font-bold text-slate-900">Marketplace Activity by Category</h3>
               <p className="text-xs text-slate-500">Total orders processed</p>
             </div>
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <Badge variant="success" size="sm">
               ₹4.0L Volume
-            </span>
+            </Badge>
           </div>
 
           <div className="h-64 w-full">
@@ -213,11 +208,11 @@ export default function AdminPage() {
                 Funding Schemes: Applicants vs Approved
               </h3>
               <p className="text-xs text-slate-500">
-                Tracking capital disbursement success rates
+                Disbursement conversion tracking
               </p>
             </div>
-            <span className="text-xs font-semibold text-slate-500">
-              Overall Approval Rate: 51.5%
+            <span className="text-xs font-bold text-emerald-700">
+              Approval Rate: 51.5%
             </span>
           </div>
 

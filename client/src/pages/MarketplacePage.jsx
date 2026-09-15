@@ -13,9 +13,13 @@ import {
   Check
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useToast } from '../context/ToastContext';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
 
 export default function MarketplacePage() {
   const { products, activeFounder, listProduct, addToCart } = useFounder();
+  const { addToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isListModalOpen, setIsListModalOpen] = useState(false);
@@ -40,8 +44,7 @@ export default function MarketplacePage() {
     'Beauty',
     'Handcrafted',
     'Agriculture',
-    'Home & Lifestyle',
-    'Local Products'
+    'Home & Lifestyle'
   ];
 
   const filteredProducts = products.filter((p) => {
@@ -56,6 +59,7 @@ export default function MarketplacePage() {
   const handleAddToCart = (product) => {
     addToCart(product);
     setAddedId(product.id);
+    addToast(`🛍️ Added "${product.name}" to cart!`);
     setTimeout(() => setAddedId(null), 1500);
   };
 
@@ -63,6 +67,7 @@ export default function MarketplacePage() {
     e.preventDefault();
     await listProduct(newProd);
     setIsListModalOpen(false);
+    addToast(`✨ "${newProd.name}" is now listed in the Marketplace!`);
     setNewProd({
       name: '',
       category: 'Food & Beverages',
@@ -75,29 +80,31 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* ---------------- Header ---------------- */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+      {/* ---------------- Header (Prompt Section 10) ---------------- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
-            D2C Commercial Showcase (Where Can I Sell?)
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+          <Badge variant="brand" size="md" className="mb-1.5">
+            Founder Marketplace (Where can I sell?)
+          </Badge>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Discover brands built by ambitious founders.
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-            Authentic, indigenous products from grassroots D2C brands across Bharat with verified founder provenance.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+            Support rural and small-town D2C brands with direct-from-origin craftsmanship and verified founder stories.
           </p>
         </div>
 
         {/* List My Product CTA */}
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => setIsListModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all self-start md:self-auto cursor-pointer"
+          icon={Plus}
+          className="self-start md:self-auto shrink-0"
         >
-          <Plus className="w-4 h-4" />
-          <span>List My Product</span>
-        </button>
+          List Product
+        </Button>
       </div>
 
       {/* ---------------- Search & Categories ---------------- */}
@@ -107,10 +114,10 @@ export default function MarketplacePage() {
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search products by brand, location, or name..."
+            placeholder="Search products by brand, region, or keyword..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white shadow-2xs"
+            className="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 bg-white shadow-2xs"
           />
         </div>
 
@@ -120,9 +127,9 @@ export default function MarketplacePage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-brand-600 text-white shadow-xs'
+                  ? 'bg-brand-600 text-white shadow-2xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -137,7 +144,7 @@ export default function MarketplacePage() {
         {filteredProducts.map((prod) => (
           <div
             key={prod.id}
-            className="bg-white rounded-2xl border border-slate-200/80 shadow-soft overflow-hidden flex flex-col justify-between group hover:shadow-md hover:border-brand-300 transition-all"
+            className="bg-white rounded-2xl border border-slate-200/80 shadow-soft overflow-hidden flex flex-col justify-between group hover:shadow-md hover:border-brand-200/80 transition-all"
           >
             <div>
               {/* Product Image */}
@@ -153,7 +160,7 @@ export default function MarketplacePage() {
                   </span>
                 )}
                 {prod.isVerified && (
-                  <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs">
+                  <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
                     <CheckCircle2 className="w-3 h-3" /> Verified Brand
                   </span>
                 )}
@@ -162,10 +169,10 @@ export default function MarketplacePage() {
               {/* Product Details */}
               <div className="p-5 space-y-2">
                 <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span className="font-semibold text-brand-700">by {prod.brand}</span>
-                  <span className="flex items-center gap-1">
+                  <span className="font-bold text-brand-700 truncate pr-2">by {prod.brand}</span>
+                  <span className="flex items-center gap-1 shrink-0">
                     <MapPin className="w-3 h-3 text-slate-400" />
-                    {prod.location}
+                    {prod.location.split(',')[0]}
                   </span>
                 </div>
 
@@ -186,11 +193,11 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            {/* Price & Actions */}
-            <div className="p-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-3 pt-3">
+            {/* Price & Action Buttons */}
+            <div className="p-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 pt-3">
               <div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-extrabold text-slate-900 font-sans">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-base font-black text-slate-900 font-sans">
                     ₹{prod.price}
                   </span>
                   {prod.originalPrice && (
@@ -203,37 +210,29 @@ export default function MarketplacePage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setSelectedProductDetails(prod)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                 >
-                  View Story
-                </button>
-                <button
+                  View Product
+                </Button>
+                <Button
+                  variant={addedId === prod.id ? 'secondary' : 'primary'}
+                  size="sm"
                   onClick={() => handleAddToCart(prod)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                    addedId === prod.id
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-brand-600 hover:bg-brand-700 text-white shadow-2xs'
-                  }`}
                 >
-                  {addedId === prod.id ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" /> Added
-                    </>
-                  ) : (
-                    'Add to Cart'
-                  )}
-                </button>
+                  {addedId === prod.id ? 'Added' : 'Add to Cart'}
+                </Button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ---------------- Product Story Modal ---------------- */}
+      {/* ---------------- Product Details Modal ---------------- */}
       {selectedProductDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="relative h-48 bg-slate-100">
               <img
@@ -243,7 +242,7 @@ export default function MarketplacePage() {
               />
               <button
                 onClick={() => setSelectedProductDetails(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900"
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 cursor-pointer"
               >
                 ✕
               </button>
@@ -254,7 +253,7 @@ export default function MarketplacePage() {
                 <span className="text-xs font-semibold text-brand-700 uppercase tracking-wider">
                   {selectedProductDetails.category} • by {selectedProductDetails.brand}
                 </span>
-                <h3 className="text-lg font-bold text-slate-900 mt-1">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-1">
                   {selectedProductDetails.name}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -276,18 +275,19 @@ export default function MarketplacePage() {
               </p>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <div className="text-lg font-extrabold text-slate-900 font-sans">
+                <div className="text-lg font-black text-slate-900 font-sans">
                   ₹{selectedProductDetails.price}
                 </div>
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={() => {
                     handleAddToCart(selectedProductDetails);
                     setSelectedProductDetails(null);
                   }}
-                  className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
                 >
                   Support Founder & Purchase
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -296,18 +296,18 @@ export default function MarketplacePage() {
 
       {/* ---------------- List New Product Modal ---------------- */}
       {isListModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-teal-900 to-emerald-900 p-5 text-white flex justify-between items-center">
+            <div className="bg-slate-900 p-5 text-white flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
                   Founder Marketplace
                 </span>
                 <h3 className="text-base font-bold text-white">List Your Product</h3>
               </div>
               <button
                 onClick={() => setIsListModalOpen(false)}
-                className="text-slate-300 hover:text-white"
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
                 ✕
               </button>
@@ -324,7 +324,7 @@ export default function MarketplacePage() {
                   placeholder="e.g. Millet Crunch (Spiced Clusters)"
                   value={newProd.name}
                   onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 />
               </div>
 
@@ -376,7 +376,7 @@ export default function MarketplacePage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Founder Story Behind The Product
+                  Founder Story
                 </label>
                 <textarea
                   rows={2}
@@ -388,19 +388,20 @@ export default function MarketplacePage() {
               </div>
 
               <div className="pt-2 flex items-center justify-between">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsListModalOpen(false)}
-                  className="text-xs font-semibold text-slate-600"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                  variant="primary"
+                  size="md"
                 >
                   Publish to Marketplace
-                </button>
+                </Button>
               </div>
             </form>
           </div>

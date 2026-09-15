@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FounderProvider, useFounder } from './context/FounderContext';
-import Navbar from './components/Navbar';
+import { ToastProvider } from './context/ToastContext';
+import PublicNavbar from './components/PublicNavbar';
 import Footer from './components/Footer';
+import AppLayout from './components/AppLayout';
 import NotificationDrawer from './components/NotificationDrawer';
 
 // Pages
@@ -17,17 +19,13 @@ import MarketplacePage from './pages/MarketplacePage';
 import FounderProfilePage from './pages/FounderProfilePage';
 import AdminPage from './pages/AdminPage';
 
-function AppContent() {
+function AppRouter() {
   const [currentView, setCurrentView] = useState('landing');
   const [selectedMentorId, setSelectedMentorId] = useState('mentor-1');
 
-  // Render view router
-  const renderView = () => {
+  // Switcher for views
+  const renderScreen = () => {
     switch (currentView) {
-      case 'landing':
-        return <LandingPage setCurrentView={setCurrentView} />;
-      case 'onboarding':
-        return <OnboardingPage setCurrentView={setCurrentView} />;
       case 'dashboard':
         return <DashboardPage setCurrentView={setCurrentView} />;
       case 'roadmap':
@@ -57,33 +55,50 @@ function AppContent() {
       case 'admin':
         return <AdminPage setCurrentView={setCurrentView} />;
       default:
-        return <LandingPage setCurrentView={setCurrentView} />;
+        return <DashboardPage setCurrentView={setCurrentView} />;
     }
   };
 
+  // 1. Landing Page (Public SaaS Layout)
+  if (currentView === 'landing') {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+        <PublicNavbar setCurrentView={setCurrentView} />
+        <main className="flex-1">
+          <LandingPage setCurrentView={setCurrentView} />
+        </main>
+        <Footer setCurrentView={setCurrentView} />
+      </div>
+    );
+  }
+
+  // 2. Onboarding Page (Focused Assessment Layout)
+  if (currentView === 'onboarding') {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+        <PublicNavbar setCurrentView={setCurrentView} />
+        <main className="flex-1">
+          <OnboardingPage setCurrentView={setCurrentView} />
+        </main>
+        <Footer setCurrentView={setCurrentView} />
+      </div>
+    );
+  }
+
+  // 3. Authenticated Views (Founder Operating System Layout with Persistent Sidebar)
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
-      {/* Top Navbar */}
-      <Navbar currentView={currentView} setCurrentView={setCurrentView} />
-
-      {/* Main Page Content */}
-      <main className="flex-1">
-        {renderView()}
-      </main>
-
-      {/* Slide-over Notifications */}
-      <NotificationDrawer setCurrentView={setCurrentView} />
-
-      {/* Global Footer */}
-      <Footer setCurrentView={setCurrentView} />
-    </div>
+    <AppLayout currentView={currentView} setCurrentView={setCurrentView}>
+      {renderScreen()}
+    </AppLayout>
   );
 }
 
 export default function App() {
   return (
-    <FounderProvider>
-      <AppContent />
-    </FounderProvider>
+    <ToastProvider>
+      <FounderProvider>
+        <AppRouter />
+      </FounderProvider>
+    </ToastProvider>
   );
 }
