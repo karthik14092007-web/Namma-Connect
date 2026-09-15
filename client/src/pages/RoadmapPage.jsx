@@ -12,66 +12,88 @@ import {
   Tag
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useToast } from '../context/ToastContext';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
 
 export default function RoadmapPage({ setCurrentView }) {
   const { activeFounder, roadmapTasks, toggleRoadmapTask } = useFounder();
+  const { addToast } = useToast();
   const [activeWeekFilter, setActiveWeekFilter] = useState('all'); // 'all', 1, 2, 3, 4
 
   const weeks = [
-    { num: 1, title: 'Week 1: Fix Brand Positioning', goal: 'Define customer persona, rewrite value proposition, and audit packaging.' },
-    { num: 2, title: 'Week 2: Build Marketing Engine', goal: 'Establish 3 content pillars, run first targeted test ad, and setup re-order automation.' },
-    { num: 3, title: 'Week 3: Increase Customer Acquisition', goal: 'Test 2 distinct audiences, launch referral perk, and streamline mobile checkout.' },
-    { num: 4, title: 'Week 4: Prepare for Scale & Funding', goal: 'Lock in unit economics, assemble grant dossiers, and review strategy with mentor.' }
+    {
+      num: 1,
+      theme: 'FIX BRAND POSITIONING',
+      goal: 'Define target customer, improve value proposition, and refine brand messaging.'
+    },
+    {
+      num: 2,
+      theme: 'BUILD MARKETING ENGINE',
+      goal: 'Create content pillars, launch targeted campaign, and improve product creatives.'
+    },
+    {
+      num: 3,
+      theme: 'IMPROVE CUSTOMER ACQUISITION',
+      goal: 'Test two audiences, improve product page, and launch referral campaign.'
+    },
+    {
+      num: 4,
+      theme: 'PREPARE FOR SCALE',
+      goal: 'Track CAC, track conversion rate, and prepare investor metrics.'
+    }
   ];
 
-  const totalTasks = roadmapTasks.length;
+  const totalTasks = roadmapTasks.length || 12;
   const completedTasks = roadmapTasks.filter((t) => t.status === 'Completed').length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  const filteredTasks = activeWeekFilter === 'all'
-    ? roadmapTasks
-    : roadmapTasks.filter((t) => t.week === Number(activeWeekFilter));
+  const handleTaskToggle = (task) => {
+    toggleRoadmapTask(task.id);
+    if (task.status !== 'Completed') {
+      addToast(`🎉 Task completed: "${task.title}"`);
+    }
+  };
 
   const handleActionClick = (task) => {
-    if (task.dimension === 'Marketing') {
+    if (task.dimension?.toLowerCase().includes('marketing')) {
       setCurrentView('marketing');
-    } else if (task.dimension === 'Funding Readiness') {
+    } else if (task.dimension?.toLowerCase().includes('funding')) {
       setCurrentView('funding');
     } else if (task.actionLabel?.toLowerCase().includes('mentor')) {
       setCurrentView('mentors');
     } else {
-      // Toggle task status
-      toggleRoadmapTask(task.id);
+      handleTaskToggle(task);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
       {/* ---------------- Header ---------------- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
-            Action Operating System (What Should I Do?)
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+          <Badge variant="brand" size="md" className="mb-1.5">
+            Action Roadmap (What should I do next?)
+          </Badge>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Your 30-Day Growth Plan
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            A step-by-step sprint customized for <strong className="text-slate-800">{activeFounder.brandName}</strong> to fix top growth gaps.
+            Structured 4-week sprint prioritized to eliminate growth bottlenecks for <strong className="text-slate-800">{activeFounder.brandName}</strong>.
           </p>
         </div>
 
         {/* Plan Completion Widget */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4 self-start md:self-auto min-w-[220px]">
-          <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center font-extrabold text-brand-700 text-base font-sans">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-4 self-start md:self-auto min-w-[230px]">
+          <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center font-black text-brand-700 text-base font-sans shrink-0">
             {progressPercent}%
           </div>
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Plan Completion
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+              Plan Progress
             </span>
-            <span className="text-xs font-bold text-slate-900">
-              {completedTasks} of {totalTasks} Tasks Done
+            <span className="text-xs sm:text-sm font-bold text-slate-900">
+              {completedTasks} of {totalTasks} tasks completed
             </span>
           </div>
         </div>
@@ -81,7 +103,7 @@ export default function RoadmapPage({ setCurrentView }) {
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
         <button
           onClick={() => setActiveWeekFilter('all')}
-          className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
             activeWeekFilter === 'all'
               ? 'bg-brand-600 text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -93,13 +115,13 @@ export default function RoadmapPage({ setCurrentView }) {
           <button
             key={w.num}
             onClick={() => setActiveWeekFilter(w.num)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               activeWeekFilter === w.num
                 ? 'bg-brand-600 text-white shadow-xs'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Week {w.num}
+            Week {w.num}: {w.theme}
           </button>
         ))}
       </div>
@@ -121,12 +143,12 @@ export default function RoadmapPage({ setCurrentView }) {
                 {/* Week Header */}
                 <div className="bg-slate-50/80 p-5 sm:px-6 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <span className="w-6 h-6 rounded-lg bg-brand-600 text-white font-black text-xs flex items-center justify-center font-sans">
-                        {week.num}
+                        W{week.num}
                       </span>
-                      <h2 className="text-base font-bold text-slate-900">
-                        {week.title}
+                      <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+                        Week {week.num} — {week.theme}
                       </h2>
                     </div>
                     <p className="text-xs text-slate-500 mt-1">
@@ -134,9 +156,9 @@ export default function RoadmapPage({ setCurrentView }) {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="text-xs font-semibold text-slate-600">
-                      {weekDone} / {weekTasks.length} Completed
+                      {weekDone} / {weekTasks.length} Done
                     </span>
                     <div className="w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
                       <div
@@ -147,7 +169,7 @@ export default function RoadmapPage({ setCurrentView }) {
                   </div>
                 </div>
 
-                {/* Task Checklist Cards */}
+                {/* Task Checklist Items */}
                 <div className="divide-y divide-slate-100 p-2 sm:p-4 space-y-2">
                   {weekTasks.map((task) => {
                     const isDone = task.status === 'Completed';
@@ -157,15 +179,15 @@ export default function RoadmapPage({ setCurrentView }) {
                         key={task.id}
                         className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                           isDone
-                            ? 'bg-slate-50/70 border-slate-200/60 opacity-80'
-                            : 'bg-white border-slate-200/80 hover:border-brand-300 hover:shadow-xs'
+                            ? 'bg-slate-50/60 border-slate-200/60 opacity-80'
+                            : 'bg-white border-slate-200/80 hover:border-brand-300 hover:shadow-2xs'
                         }`}
                       >
-                        {/* Task info with toggle button */}
-                        <div className="flex items-start gap-3 flex-1">
+                        {/* Task Information & Completion Checkbox */}
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
                           <button
                             type="button"
-                            onClick={() => toggleRoadmapTask(task.id)}
+                            onClick={() => handleTaskToggle(task)}
                             className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-colors shrink-0 mt-0.5 cursor-pointer ${
                               isDone
                                 ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
@@ -176,35 +198,29 @@ export default function RoadmapPage({ setCurrentView }) {
                             {isDone && <Check className="w-4 h-4 stroke-[3]" />}
                           </button>
 
-                          <div className="space-y-1">
+                          <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <h3
-                                className={`text-sm font-bold ${
+                                className={`text-xs sm:text-sm font-bold ${
                                   isDone ? 'line-through text-slate-400' : 'text-slate-900'
                                 }`}
                               >
                                 {task.title}
                               </h3>
 
-                              {/* Priority badge */}
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                  task.priority === 'High'
-                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                    : 'bg-slate-100 text-slate-700 border border-slate-200'
-                                }`}
+                              <Badge
+                                variant={task.priority === 'High' ? 'rose' : 'neutral'}
+                                size="sm"
                               >
                                 {task.priority} Priority
-                              </span>
+                              </Badge>
 
-                              {/* Effort Tag */}
                               <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {task.estimatedEffort}
                               </span>
 
-                              {/* Dimension Tag */}
-                              <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200/60">
                                 {task.dimension}
                               </span>
                             </div>
@@ -216,19 +232,16 @@ export default function RoadmapPage({ setCurrentView }) {
                         </div>
 
                         {/* Action CTA Button */}
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                          <button
-                            type="button"
+                        <div className="shrink-0 self-end sm:self-center">
+                          <Button
+                            variant={isDone ? 'outline' : 'secondary'}
+                            size="sm"
                             onClick={() => handleActionClick(task)}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                              isDone
-                                ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                                : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
-                            }`}
+                            icon={ArrowRight}
+                            iconPosition="right"
                           >
-                            <span>{task.actionLabel || 'View Task'}</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
+                            {task.actionLabel || 'View Task'}
+                          </Button>
                         </div>
                       </div>
                     );

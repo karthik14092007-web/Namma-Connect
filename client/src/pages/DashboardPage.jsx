@@ -12,12 +12,14 @@ import {
   CheckCircle2,
   Calendar,
   Clock,
-  ArrowUpRight,
-  ShieldCheck,
-  Zap
+  Zap,
+  ArrowUpRight
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
 import GrowthScoreBadge from '../components/GrowthScoreBadge';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 
 export default function DashboardPage({ setCurrentView }) {
   const { activeFounder, roadmapTasks, mentors, fundingOpportunities } = useFounder();
@@ -27,118 +29,116 @@ export default function DashboardPage({ setCurrentView }) {
   const totalTasks = roadmapTasks.length || 12;
   const progressPercent = Math.round((completedTasks / totalTasks) * 100);
 
-  // Top matched mentor
+  // Top matched mentor & funding
   const topMentor = mentors[0];
-  // Top matched funding
   const topFunding = fundingOpportunities[0];
-
-  const greetingFounder = activeFounder.founderName || 'Founder';
+  const greetingFounder = activeFounder.founderName || 'Kavya';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
       {/* ---------------- Top Greeting & Orientation ---------------- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200/60">
-              Founder Dashboard • Phase: {activeFounder.businessStage}
-            </span>
-          </div>
+          <Badge variant="brand" size="md" className="mb-1.5">
+            Founder Operating System • {activeFounder.businessStage}
+          </Badge>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Good morning, {greetingFounder}. Let's grow your brand.
+            Good morning, {greetingFounder}.
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Here's what your business should focus on next.
           </p>
         </div>
 
-        {/* Brand Summary Pill */}
-        <div className="flex items-center gap-3 bg-white p-2.5 px-4 rounded-xl border border-slate-200 shadow-2xs self-start md:self-auto">
-          <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">
+        {/* Brand Summary Box */}
+        <div className="flex items-center gap-3 bg-white p-2.5 px-4 rounded-xl border border-slate-200/80 shadow-2xs self-start md:self-auto">
+          <div className="w-8 h-8 rounded-lg bg-brand-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0">
             {activeFounder.brandName ? activeFounder.brandName[0] : 'N'}
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-900">{activeFounder.brandName}</p>
-            <p className="text-[11px] text-slate-500">
-              📍 {activeFounder.location} • {activeFounder.monthlyRevenue} / mo
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-900 truncate">{activeFounder.brandName}</p>
+            <p className="text-[11px] text-slate-500 truncate">
+              {activeFounder.location} • {activeFounder.monthlyRevenue} / mo
             </p>
           </div>
         </div>
       </div>
 
-      {/* ---------------- 1. GROWTH SCORE (Hero Card) ---------------- */}
+      {/* ---------------- 1. BRAND GROWTH SCORE (Hero Card) ---------------- */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+          <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-brand-600" />
-            <span>Diagnosis Overview (Where Am I?)</span>
+            <span>Diagnosis Overview (Where is my business today?)</span>
           </h2>
-          <span className="text-xs text-slate-400">Evaluated on 6 Growth Factors</span>
+          <span className="text-xs text-slate-400 hidden sm:inline">6-Factor Evaluation</span>
         </div>
 
         <GrowthScoreBadge
           score={activeFounder.growthScore}
           status={activeFounder.scoreStatus}
           categoryScores={activeFounder.categoryScores}
-          onFixGap={() => setCurrentView('marketing')}
         />
       </div>
 
-      {/* ---------------- 2. YOUR BIGGEST GROWTH GAPS ---------------- */}
+      {/* ---------------- 2. YOUR BIGGEST GROWTH GAPS (Section 6) ---------------- */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-700">
-              Prioritized Bottlenecks (What's Wrong?)
-            </span>
+            <Badge variant="rose" size="sm" className="mb-1">
+              Prioritized Bottlenecks (What's holding me back?)
+            </Badge>
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Your top 3 growth gaps
+              Your biggest growth gaps
             </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setCurrentView('roadmap')}
-            className="text-xs font-bold text-brand-700 hover:text-brand-800 flex items-center gap-1"
+            icon={ArrowRight}
+            iconPosition="right"
           >
-            <span>See 30-Day Fix Plan</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+            See 30-Day Fix Plan
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           {(activeFounder.topGaps || []).map((gap, index) => {
             const gapNumber = `0${index + 1}`;
-            let borderAccent = 'border-amber-200 bg-amber-50/20';
-            let badgeBg = 'bg-amber-100 text-amber-800 border-amber-300';
-
-            if (index === 0) {
-              borderAccent = 'border-amber-300 bg-amber-50/40 shadow-xs ring-1 ring-amber-400/20';
-              badgeBg = 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold';
-            } else if (index === 1) {
-              borderAccent = 'border-rose-200 bg-rose-50/20';
-              badgeBg = 'bg-rose-100 text-rose-800 border-rose-200';
-            } else {
-              borderAccent = 'border-orange-200 bg-orange-50/20';
-              badgeBg = 'bg-orange-100 text-orange-800 border-orange-200';
-            }
+            const isHighPriority = index < 2;
 
             return (
               <div
                 key={gap.id || index}
-                className={`p-6 rounded-2xl border ${borderAccent} bg-white shadow-soft flex flex-col justify-between transition-all hover:-translate-y-0.5`}
+                className={`p-6 rounded-2xl border bg-white shadow-soft flex flex-col justify-between transition-all hover:-translate-y-0.5 ${
+                  index === 0
+                    ? 'border-amber-300 ring-1 ring-amber-400/20 shadow-xs'
+                    : 'border-slate-200/80'
+                }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3">
+                  {/* Top Rank + Score Row */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="text-xs font-black text-slate-400 font-sans tracking-wider">
                       {gapNumber} — {gap.dimension.toUpperCase()}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full border font-bold ${badgeBg}`}>
-                      {gap.score}/100
+                    <span className="text-xs px-2.5 py-0.5 rounded-full font-black font-sans bg-amber-50 text-amber-900 border border-amber-300">
+                      {gap.score} / 100
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">
-                    {gap.dimension}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">
+                      {gap.dimension}
+                    </h3>
+                    <Badge
+                      variant={isHighPriority ? 'rose' : 'warning'}
+                      size="sm"
+                    >
+                      {isHighPriority ? 'HIGH PRIORITY' : 'MEDIUM PRIORITY'}
+                    </Badge>
+                  </div>
 
                   <p className="text-xs text-slate-600 leading-relaxed mb-4">
                     {gap.diagnosis}
@@ -146,7 +146,10 @@ export default function DashboardPage({ setCurrentView }) {
                 </div>
 
                 <div className="pt-4 border-t border-slate-100">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full"
                     onClick={() => {
                       if (gap.dimension.toLowerCase().includes('marketing')) {
                         setCurrentView('marketing');
@@ -154,11 +157,11 @@ export default function DashboardPage({ setCurrentView }) {
                         setCurrentView('roadmap');
                       }
                     }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                    icon={ArrowRight}
+                    iconPosition="right"
                   >
-                    <span>{gap.actionText || 'Fix this'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                    {gap.actionText || 'Fix this'}
+                  </Button>
                 </div>
               </div>
             );
@@ -173,19 +176,19 @@ export default function DashboardPage({ setCurrentView }) {
           <div>
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-700">
-                  Action Engine (What Should I Do?)
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-700 block">
+                  Action Roadmap (What should I do next?)
                 </span>
-                <h3 className="text-lg font-bold text-slate-900">
-                  30-Day Growth Plan Progress
+                <h3 className="text-base font-bold text-slate-900">
+                  Your 30-Day Growth Plan
                 </h3>
               </div>
               <div className="text-right">
-                <span className="text-xs font-bold text-slate-800">
-                  {completedTasks} of {totalTasks} Done
+                <span className="text-xs font-bold text-slate-900">
+                  {completedTasks} of {totalTasks} Tasks Completed
                 </span>
-                <span className="text-xs text-brand-600 block font-semibold">
-                  {progressPercent}% Complete
+                <span className="text-xs text-brand-700 block font-extrabold">
+                  {progressPercent}% Done
                 </span>
               </div>
             </div>
@@ -198,20 +201,20 @@ export default function DashboardPage({ setCurrentView }) {
               />
             </div>
 
-            {/* Next 3 Upcoming Tasks */}
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Recommended Next Steps
+            {/* Next 3 Tasks preview */}
+            <div className="space-y-2.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                Immediate Next Sprint Tasks
               </span>
               {roadmapTasks.slice(0, 3).map((task) => (
                 <div
                   key={task.id}
                   onClick={() => setCurrentView('roadmap')}
-                  className="p-3 rounded-xl border border-slate-200/70 hover:border-brand-300 hover:bg-brand-50/30 transition-all cursor-pointer flex items-center justify-between"
+                  className="p-3 rounded-xl border border-slate-200/70 hover:border-brand-300 hover:bg-brand-50/20 transition-all cursor-pointer flex items-center justify-between gap-2"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                      className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
                         task.status === 'Completed'
                           ? 'bg-emerald-500 border-emerald-500 text-white'
                           : 'border-slate-300'
@@ -219,52 +222,50 @@ export default function DashboardPage({ setCurrentView }) {
                     >
                       {task.status === 'Completed' && <CheckCircle2 className="w-3.5 h-3.5" />}
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">{task.title}</p>
-                      <p className="text-[11px] text-slate-500">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{task.title}</p>
+                      <p className="text-[11px] text-slate-500 truncate">
                         {task.weekTitle} • Effort: {task.estimatedEffort}
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      task.priority === 'High'
-                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                        : 'bg-slate-100 text-slate-700'
-                    }`}
+                  <Badge
+                    variant={task.priority === 'High' ? 'rose' : 'neutral'}
+                    size="sm"
+                    className="shrink-0"
                   >
-                    {task.priority} Priority
-                  </span>
+                    {task.priority}
+                  </Badge>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs text-slate-500">
-              Tasks adapt dynamically to your growth score updates
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500 text-[11px]">
+              Tasks adapt dynamically to score updates
             </span>
             <button
               onClick={() => setCurrentView('roadmap')}
-              className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 hover:text-brand-800"
+              className="inline-flex items-center gap-1 font-bold text-brand-700 hover:text-brand-800 cursor-pointer"
             >
-              <span>View Full 4-Week Roadmap</span>
+              <span>View Full 4-Week Plan</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Right 5 cols: Ecosystem Recommendations (Mentor + Funding shortcuts) */}
+        {/* Right 5 cols: Recommendations (Mentor + Funding matches) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Top Mentor Card */}
           {topMentor && (
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Top Matched Mentor
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Recommended Mentor (Who can help me?)
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-                  {topMentor.matchPercentage}% Match
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold border border-emerald-300 font-sans">
+                  {topMentor.matchPercentage}% MATCH
                 </span>
               </div>
 
@@ -272,47 +273,47 @@ export default function DashboardPage({ setCurrentView }) {
                 <img
                   src={topMentor.avatarUrl}
                   alt={topMentor.name}
-                  className="w-12 h-12 rounded-xl object-cover border border-slate-200"
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
                 />
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">{topMentor.name}</h4>
-                  <p className="text-xs text-slate-500">{topMentor.title}</p>
-                  <p className="text-[11px] text-emerald-700 font-medium">
-                    ✓ Matches your #1 gap: Marketing
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-slate-900 truncate">{topMentor.name}</h4>
+                  <p className="text-xs text-slate-500 truncate">{topMentor.title}</p>
+                  <p className="text-[11px] text-emerald-700 font-semibold truncate">
+                    ✓ Matches #1 gap: Performance Marketing
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-                <span className="font-bold text-slate-900">{topMentor.consultationFee}</span>
+                <span className="font-extrabold text-slate-900 font-sans">{topMentor.consultationFee}</span>
                 <button
                   onClick={() => setCurrentView('mentors')}
-                  className="text-brand-700 font-bold hover:underline flex items-center gap-1"
+                  className="text-brand-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <span>View Profile & Book</span>
+                  <span>View Match Breakdown</span>
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Top Funding Match Card */}
+          {/* Top Funding Fit Card */}
           {topFunding && (
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Top Funding Fit
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Recommended Capital (Who can fund me?)
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-                  {topFunding.matchPercentage}% Fit
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold border border-emerald-300 font-sans">
+                  {topFunding.matchPercentage}% FIT
                 </span>
               </div>
 
               <div className="mb-3">
                 <h4 className="text-sm font-bold text-slate-900">{topFunding.provider}</h4>
                 <p className="text-xs text-slate-500">{topFunding.category} • Range: {topFunding.fundingRange}</p>
-                <p className="text-[11px] text-emerald-700 font-medium mt-1">
-                  ✓ Aligned with your ₹7L requirement & early traction stage
+                <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                  ✓ Aligned with your ₹7L capital requirement
                 </p>
               </div>
 
@@ -320,7 +321,7 @@ export default function DashboardPage({ setCurrentView }) {
                 <span className="text-slate-500 text-[11px]">Eligible: Food & Women-Led</span>
                 <button
                   onClick={() => setCurrentView('funding')}
-                  className="text-brand-700 font-bold hover:underline flex items-center gap-1"
+                  className="text-brand-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>Check Eligibility</span>
                   <ArrowRight className="w-3 h-3" />
@@ -332,37 +333,37 @@ export default function DashboardPage({ setCurrentView }) {
       </div>
 
       {/* ---------------- 4. QUICK ACTION ECOSYSTEM LAUNCHERS ---------------- */}
-      <div className="pt-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
-          Direct Growth Tools
+      <div className="pt-2">
+        <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">
+          Growth Operating System Tools
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             {
               view: 'marketing',
               title: 'Marketing Hub',
-              desc: 'Targeted ad campaigns',
+              desc: 'Who should I reach?',
               icon: Megaphone,
               color: 'text-amber-600 bg-amber-50'
             },
             {
               view: 'mentors',
-              title: 'Mentor Directory',
-              desc: '45-min growth sessions',
+              title: 'Mentors',
+              desc: 'Who can help me?',
               icon: Users,
               color: 'text-brand-600 bg-brand-50'
             },
             {
               view: 'funding',
-              title: 'Funding Grants',
-              desc: 'Govt schemes & angels',
+              title: 'Funding Fit',
+              desc: 'Who can fund me?',
               icon: Coins,
               color: 'text-emerald-600 bg-emerald-50'
             },
             {
               view: 'marketplace',
-              title: 'D2C Marketplace',
-              desc: 'Discover & list products',
+              title: 'Marketplace',
+              desc: 'Where can I sell?',
               icon: ShoppingBag,
               color: 'text-purple-600 bg-purple-50'
             }
@@ -374,7 +375,7 @@ export default function DashboardPage({ setCurrentView }) {
                 onClick={() => setCurrentView(tool.view)}
                 className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-brand-300 transition-all text-left flex flex-col justify-between group cursor-pointer"
               >
-                <div className={`w-9 h-9 rounded-lg ${tool.color} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
+                <div className={`w-9 h-9 rounded-lg ${tool.color} flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
