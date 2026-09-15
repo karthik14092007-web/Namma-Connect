@@ -8,7 +8,12 @@ import {
   ArrowLeft,
   Sparkles,
   Check,
-  RotateCcw
+  RotateCcw,
+  ShieldCheck,
+  CheckCircle2,
+  HelpCircle,
+  Zap,
+  Target
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
 import { useToast } from '../context/ToastContext';
@@ -16,11 +21,15 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Input, Select } from '../components/ui/Input';
 import LoadingScreen from '../components/ui/LoadingScreen';
+import { DIAGNOSTIC_FACTORS, DIAGNOSTIC_QUESTIONS } from '../scoring/diagnosticQuestions';
+import { KAVYA_DEMO_ANSWERS } from '../scoring/demoAnswers';
+import { calculateGrowthDiagnostic, getMaturityColor } from '../scoring/scoringEngine';
 
 export default function OnboardingPage({ setCurrentView }) {
   const { onboardFounder, isLoading } = useFounder();
   const { addToast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [activeDiagnosticFactor, setActiveDiagnosticFactor] = useState('marketing');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Form State
@@ -45,10 +54,11 @@ export default function OnboardingPage({ setCurrentView }) {
     mentorshipMode: 'Online',
     targetCustomer: 'Health-conscious families & urban youth',
     primaryMarket: 'Tamil Nadu & South India',
-    brandStory: ''
+    brandStory: '',
+    diagnosticAnswers: { ...KAVYA_DEMO_ANSWERS }
   });
 
-  // Autofill with the exact Kavya Demo Persona
+  // Autofill with the exact Kavya Demo Persona + 24 Diagnostic Answers
   const handleAutofillKavya = () => {
     setFormData({
       brandName: 'Namma Crunch',
@@ -71,9 +81,10 @@ export default function OnboardingPage({ setCurrentView }) {
       mentorshipMode: 'Online',
       targetCustomer: 'Health-conscious families, urban professionals, college students',
       primaryMarket: 'Tamil Nadu & Tier 2/3 South India',
-      brandStory: 'Reviving heirloom millet recipes into crispy, wholesome baked snacks with zero palm oil or preservatives.'
+      brandStory: 'Reviving heirloom millet recipes into crispy, wholesome baked snacks with zero palm oil or preservatives.',
+      diagnosticAnswers: { ...KAVYA_DEMO_ANSWERS }
     });
-    addToast('⚡ Loaded Kavya (Namma Crunch) demo persona!');
+    addToast('⚡ Loaded Kavya (Namma Crunch) & 24 observable diagnostic answers!');
   };
 
   const handleChallengeToggle = (challenge) => {
@@ -100,21 +111,63 @@ export default function OnboardingPage({ setCurrentView }) {
     });
   };
 
+  const handleAnswerSelect = (questionId, score) => {
+    setFormData((prev) => ({
+      ...prev,
+      diagnosticAnswers: {
+        ...prev.diagnosticAnswers,
+        [questionId]: score
+      }
+    }));
+  };
+
+  // Live diagnostic calculation for step 4
+  const liveDiagnostic = calculateGrowthDiagnostic(
+    formData.diagnosticAnswers,
+    formData.businessStage || 'Early traction'
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsAnalyzing(true);
-    await onboardFounder(formData);
+    await onboardFounder({
+      ...formData,
+      diagnosticAnswers: formData.diagnosticAnswers,
+      growthScore: liveDiagnostic.overallScore,
+      scoreStatus: liveDiagnostic.maturity,
+      categoryScores: {
+        product: liveDiagnostic.factors.product?.score || 85,
+        sales: liveDiagnostic.factors.sales?.score || 70,
+        branding: liveDiagnostic.factors.branding?.score || 60,
+        marketing: liveDiagnostic.factors.marketing?.score || 50,
+        customerReach: liveDiagnostic.factors.reach?.score || 70,
+        fundingReadiness: liveDiagnostic.factors.funding?.score || 75
+      }
+    });
   };
 
   const handleAnalysisFinished = () => {
     setIsAnalyzing(false);
-    addToast('🎯 Brand Growth Score and 30-Day Plan generated!');
+    addToast('🎯 Growth Diagnostic & 30-Day Plan generated!');
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Navigation between diagnostic factor tabs
+  const factorIndex = DIAGNOSTIC_FACTORS.findIndex((f) => f.id === activeDiagnosticFactor);
+  const handleNextFactor = () => {
+    if (factorIndex < DIAGNOSTIC_FACTORS.length - 1) {
+      setActiveDiagnosticFactor(DIAGNOSTIC_FACTORS[factorIndex + 1].id);
+    }
+  };
+  const handlePrevFactor = () => {
+    if (factorIndex > 0) {
+      setActiveDiagnosticFactor(DIAGNOSTIC_FACTORS[factorIndex - 1].id);
+    }
+  };
+
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       {/* Analyzing Transition Screen */}
       {isAnalyzing && (
         <LoadingScreen
@@ -126,14 +179,19 @@ export default function OnboardingPage({ setCurrentView }) {
       {/* Header & Quick Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <Badge variant="brand" size="md" className="mb-1.5">
-            Diagnostic Assessment
-          </Badge>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="brand" size="md">
+              Evidence-Based Assessment
+            </Badge>
+            <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              Rule-Based Diagnostic • V1
+            </span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Assess Your D2C Business
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Answer a few quick questions to generate your Brand Growth Score and 30-Day Roadmap.
+            Answer observable readiness questions to calculate your Growth Diagnostic and 30-Day Action Plan.
           </p>
         </div>
 
@@ -142,7 +200,7 @@ export default function OnboardingPage({ setCurrentView }) {
           size="sm"
           onClick={handleAutofillKavya}
           icon={Sparkles}
-          className="self-start sm:self-auto shrink-0"
+          className="self-start sm:self-auto shrink-0 font-bold shadow-2xs"
         >
           ⚡ Autofill Demo (Kavya)
         </Button>
@@ -155,7 +213,7 @@ export default function OnboardingPage({ setCurrentView }) {
             { step: 1, label: '1 Business', icon: Building2 },
             { step: 2, label: '2 Growth', icon: TrendingUp },
             { step: 3, label: '3 Funding', icon: Coins },
-            { step: 4, label: '4 Preferences', icon: Sliders }
+            { step: 4, label: '4 Growth Diagnostic', icon: Target }
           ].map((item) => {
             const isCompleted = currentStep > item.step;
             const isCurrent = currentStep === item.step;
@@ -168,7 +226,7 @@ export default function OnboardingPage({ setCurrentView }) {
                 onClick={() => setCurrentStep(item.step)}
                 className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-brand-50 text-brand-700 font-extrabold border border-brand-200'
+                    ? 'bg-brand-50 text-brand-700 font-extrabold border border-brand-200 shadow-2xs'
                     : isCompleted
                     ? 'text-emerald-700 font-bold hover:bg-slate-50'
                     : 'text-slate-400 hover:bg-slate-50'
@@ -190,7 +248,7 @@ export default function OnboardingPage({ setCurrentView }) {
       </div>
 
       {/* Step Form Containers */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-soft">
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-soft">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* ---------------- STEP 1: BUSINESS ---------------- */}
           {currentStep === 1 && (
@@ -348,25 +406,24 @@ export default function OnboardingPage({ setCurrentView }) {
                     'Branding',
                     'Sales',
                     'Customer acquisition',
-                    'Funding',
-                    'Mentorship',
                     'Distribution',
-                    'Product positioning'
-                  ].map((ch) => {
-                    const isSelected = formData.challenges.includes(ch);
+                    'Packaging',
+                    'Funding'
+                  ].map((challenge) => {
+                    const isSelected = formData.challenges.includes(challenge);
                     return (
                       <button
                         type="button"
-                        key={ch}
-                        onClick={() => handleChallengeToggle(ch)}
-                        className={`p-2.5 rounded-xl text-xs font-medium border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        key={challenge}
+                        onClick={() => handleChallengeToggle(challenge)}
+                        className={`py-3 px-3 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer flex items-center justify-between ${
                           isSelected
-                            ? 'bg-brand-50 border-brand-500 text-brand-900 font-bold shadow-2xs'
+                            ? 'bg-amber-50 border-amber-400 text-amber-900 font-extrabold shadow-2xs'
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
-                        <span className="truncate pr-1">{ch}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-brand-600 stroke-[3] shrink-0" />}
+                        <span>{challenge}</span>
+                        {isSelected && <Check className="w-4 h-4 text-amber-600" />}
                       </button>
                     );
                   })}
@@ -375,171 +432,313 @@ export default function OnboardingPage({ setCurrentView }) {
             </div>
           )}
 
-          {/* ---------------- STEP 3: FUNDING ---------------- */}
+          {/* ---------------- STEP 3: FUNDING & PREFERENCES ---------------- */}
           {currentStep === 3 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="border-b border-slate-100 pb-3">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  Step 3 — Funding Requirements
+                  Step 3 — Funding & Preferences
                 </h3>
-                <p className="text-xs text-slate-500">We match you with grants, government schemes, and early angels.</p>
+                <p className="text-xs text-slate-500">Define capital requirements and mentorship preferences.</p>
               </div>
 
-              {/* Are you looking for funding */}
+              {/* Funding Amount */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Are you currently looking for funding? *
+                  How much funding / grant support are you seeking?
                 </label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isSeekingFunding: true })}
-                    className={`flex-1 py-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      formData.isSeekingFunding
-                        ? 'bg-brand-50 border-brand-600 text-brand-700 shadow-2xs'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    Yes, Seeking Capital
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isSeekingFunding: false })}
-                    className={`flex-1 py-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      !formData.isSeekingFunding
-                        ? 'bg-brand-50 border-brand-600 text-brand-700 shadow-2xs'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    No, Self-funded / Bootstrapped
-                  </button>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {['Not seeking funding', '₹1L–₹5L', '₹5L–₹10L', '₹10L–₹25L', '₹25L+'].map((amount) => (
+                    <button
+                      type="button"
+                      key={amount}
+                      onClick={() => setFormData({ ...formData, fundingRequirement: amount })}
+                      className={`py-3 px-2 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
+                        formData.fundingRequirement === amount
+                          ? 'bg-brand-50 border-brand-600 text-brand-700 font-extrabold shadow-2xs'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {amount}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {formData.isSeekingFunding && (
-                <>
-                  {/* Funding Requirement */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                      Funding requirement:
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {['< ₹5L', '₹5L–₹10L', '₹10L–₹25L', '₹25L+'].map((range) => (
+              {/* Funding Purpose */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  What will you use the funding for?
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {['Marketing', 'Product development', 'Expansion', 'Inventory', 'Hiring', 'Certifications'].map(
+                    (purpose) => {
+                      const isSelected = formData.fundingPurpose.includes(purpose);
+                      return (
                         <button
                           type="button"
-                          key={range}
-                          onClick={() => setFormData({ ...formData, fundingRequirement: range })}
-                          className={`py-3 px-2 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
-                            formData.fundingRequirement === range
-                              ? 'bg-brand-50 border-brand-600 text-brand-700 font-extrabold shadow-2xs'
+                          key={purpose}
+                          onClick={() => handlePurposeToggle(purpose)}
+                          className={`py-3 px-3 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-emerald-50 border-emerald-400 text-emerald-900 font-extrabold shadow-2xs'
                               : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                         >
-                          {range}
+                          <span>{purpose}</span>
+                          {isSelected && <Check className="w-4 h-4 text-emerald-600" />}
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Funding Purpose */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                      Funding purpose: (Select all that apply)
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[
-                        'Marketing',
-                        'Inventory',
-                        'Manufacturing',
-                        'Technology',
-                        'Expansion',
-                        'Hiring'
-                      ].map((purp) => {
-                        const isSelected = formData.fundingPurpose.includes(purp);
-                        return (
-                          <button
-                            type="button"
-                            key={purp}
-                            onClick={() => handlePurposeToggle(purp)}
-                            className={`p-2.5 rounded-xl text-xs font-medium border text-left flex items-center justify-between transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-brand-50 border-brand-500 text-brand-900 font-bold shadow-2xs'
-                                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            <span>{purp}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-brand-600 stroke-[3]" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* ---------------- STEP 4: PREFERENCES ---------------- */}
-          {currentStep === 4 && (
-            <div className="space-y-5 animate-in fade-in duration-200">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  Step 4 — Preferences & Target Market
-                </h3>
-                <p className="text-xs text-slate-500">Fine-tune your mentor and customer matching criteria.</p>
+                      );
+                    }
+                  )}
+                </div>
               </div>
 
+              {/* Preferred Language */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Preferred Language"
-                  required
+                <Select
+                  label="Preferred Language for Mentorship"
                   value={formData.preferredLanguage}
                   onChange={(e) => setFormData({ ...formData, preferredLanguage: e.target.value })}
-                  placeholder="e.g. Tamil / English, Hindi, etc."
-                />
+                >
+                  <option value="Tamil / English">Tamil / English</option>
+                  <option value="English">English</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Hindi / English">Hindi / English</option>
+                  <option value="Kannada / English">Kannada / English</option>
+                </Select>
 
-                <Input
-                  label="Mentor Expertise"
-                  value={formData.preferredMentorExpertise}
-                  onChange={(e) => setFormData({ ...formData, preferredMentorExpertise: e.target.value })}
-                  placeholder="e.g. Performance Marketing, Packaging"
-                />
-
-                <Input
-                  label="Target Customer"
-                  value={formData.targetCustomer}
-                  onChange={(e) => setFormData({ ...formData, targetCustomer: e.target.value })}
-                  placeholder="e.g. Health-conscious families, gym goers"
-                />
-
-                <Input
-                  label="Primary Market"
-                  value={formData.primaryMarket}
-                  onChange={(e) => setFormData({ ...formData, primaryMarket: e.target.value })}
-                  placeholder="e.g. Tamil Nadu & South India"
-                />
+                <Select
+                  label="Mentorship Mode"
+                  value={formData.mentorshipMode}
+                  onChange={(e) => setFormData({ ...formData, mentorshipMode: e.target.value })}
+                >
+                  <option value="Online">Online (Video Call / Chat)</option>
+                  <option value="In-person">In-person (Regional Meetups)</option>
+                  <option value="Both">Both Online & In-person</option>
+                </Select>
               </div>
             </div>
           )}
 
-          {/* Stepper Navigation Buttons */}
-          <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+          {/* ---------------- STEP 4: GROWTH DIAGNOSTIC STUDIO ---------------- */}
+          {currentStep === 4 && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-black tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                      Step 4 — Growth Diagnostic
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      24 Observable Questions (4 per factor)
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 mt-1">
+                    Rule-Based Business Readiness Assessment
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Select the option that matches your current operational reality. Numerical points are visible on every option card.
+                  </p>
+                </div>
+
+                {/* Live Diagnostic Score Pill */}
+                <div className="bg-slate-900 text-white p-3 rounded-2xl border border-slate-800 shrink-0 text-right">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Diagnostic Score
+                  </span>
+                  <span className="text-xl font-black text-emerald-400 block font-mono">
+                    {liveDiagnostic.overallScore} <span className="text-xs text-slate-400 font-normal">/ 100</span>
+                  </span>
+                  <span className="text-[10px] text-slate-300 block font-sans">
+                    {liveDiagnostic.maturity} Stage
+                  </span>
+                </div>
+              </div>
+
+              {/* 6-Factor Switcher Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100">
+                {DIAGNOSTIC_FACTORS.map((factor) => {
+                  const factorObj = liveDiagnostic.factors[factor.id];
+                  const isCurrent = activeDiagnosticFactor === factor.id;
+                  const color = getMaturityColor(factorObj?.score || 50);
+
+                  return (
+                    <button
+                      type="button"
+                      key={factor.id}
+                      onClick={() => setActiveDiagnosticFactor(factor.id)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+                        isCurrent
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      <span>{factor.label}</span>
+                      <span
+                        className={`text-[10px] font-mono font-black px-1.5 py-0.2 rounded-md ${
+                          isCurrent
+                            ? 'bg-emerald-500 text-slate-950'
+                            : `${color.bg} ${color.text}`
+                        }`}
+                      >
+                        {factorObj?.score ?? 0}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Factor Header */}
+              {(() => {
+                const activeFactorData = liveDiagnostic.factors[activeDiagnosticFactor];
+                return (
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                        {activeFactorData?.label} Factor
+                      </span>
+                      <span className="text-[11px] text-slate-500 block">
+                        Formula: {activeFactorData?.formula}
+                      </span>
+                    </div>
+                    <span className="text-xs font-black text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">
+                      Score: {activeFactorData?.score}/100 • {activeFactorData?.maturity}
+                    </span>
+                  </div>
+                );
+              })()}
+
+              {/* 4 Questions for Active Factor */}
+              <div className="space-y-6">
+                {(DIAGNOSTIC_QUESTIONS[activeDiagnosticFactor] || []).map((q, qIndex) => {
+                  const currentAnswer = formData.diagnosticAnswers[q.id];
+
+                  return (
+                    <div
+                      key={q.id}
+                      className="p-5 rounded-3xl border border-slate-200/90 bg-white shadow-2xs space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200 inline-block mb-1">
+                            Signal 0{qIndex + 1} of 04
+                          </span>
+                          <h4 className="text-sm font-extrabold text-slate-900 leading-snug">
+                            {q.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">{q.prompt}</p>
+                        </div>
+                        {currentAnswer !== undefined && (
+                          <span className="text-xs font-mono font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                            +{currentAnswer} pts
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 6 Clearly Differentiated Clickable Option Cards */}
+                      <div className="space-y-2 pt-1">
+                        {q.options.map((opt) => {
+                          const isSelected = currentAnswer === opt.score;
+                          return (
+                            <div
+                              key={opt.score}
+                              onClick={() => handleAnswerSelect(q.id, opt.score)}
+                              className={`p-3 sm:p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                                isSelected
+                                  ? 'border-brand-600 bg-brand-50/50 shadow-2xs'
+                                  : 'border-slate-200/80 hover:border-slate-300 bg-white'
+                              }`}
+                            >
+                              <div className="flex items-start gap-2.5 min-w-0">
+                                <div
+                                  className={`w-4 h-4 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center ${
+                                    isSelected
+                                      ? 'border-brand-600 bg-brand-600'
+                                      : 'border-slate-300'
+                                  }`}
+                                >
+                                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs font-bold text-slate-900 block leading-tight">
+                                    {opt.label}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 block leading-tight mt-0.5">
+                                    {opt.desc}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Visible Numerical Point Badge beside option */}
+                              <span
+                                className={`text-xs font-mono font-black px-2 py-0.5 rounded-lg border shrink-0 ${
+                                  isSelected
+                                    ? 'bg-brand-600 text-white border-brand-700'
+                                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}
+                              >
+                                {opt.score} pts
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Diagnostic Factor Next / Prev Controls */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={factorIndex === 0}
+                  onClick={handlePrevFactor}
+                  className="text-xs font-bold"
+                >
+                  ← Previous Factor
+                </Button>
+
+                <span className="text-xs text-slate-400">
+                  Factor {factorIndex + 1} of {DIAGNOSTIC_FACTORS.length}
+                </span>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={factorIndex === DIAGNOSTIC_FACTORS.length - 1}
+                  onClick={handleNextFactor}
+                  className="text-xs font-bold"
+                >
+                  Next Factor →
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Stepper Footer Controls */}
+          <div className="flex items-center justify-between pt-6 border-t border-slate-100">
             {currentStep > 1 ? (
               <Button
+                type="button"
                 variant="outline"
-                size="sm"
+                size="md"
                 onClick={() => setCurrentStep((s) => s - 1)}
                 icon={ArrowLeft}
-                iconPosition="left"
               >
                 Back
               </Button>
             ) : (
-              <span />
+              <div />
             )}
 
             {currentStep < 4 ? (
               <Button
+                type="button"
                 variant="primary"
                 size="md"
                 onClick={() => setCurrentStep((s) => s + 1)}
@@ -552,12 +751,13 @@ export default function OnboardingPage({ setCurrentView }) {
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="md"
                 disabled={isLoading}
-                icon={Sparkles}
-                iconPosition="left"
+                icon={ArrowRight}
+                iconPosition="right"
+                className="bg-emerald-600 hover:bg-emerald-700 font-black shadow-sm"
               >
-                Generate My Growth Plan
+                {isLoading ? 'Calculating Diagnostic...' : '🎯 Calculate Growth Diagnostic & Plan'}
               </Button>
             )}
           </div>

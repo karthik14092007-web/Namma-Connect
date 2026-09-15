@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { KAVYA_DEMO_ANSWERS } from '../scoring/demoAnswers';
 
 const FounderContext = createContext();
 
@@ -38,19 +39,20 @@ const defaultKavyaFounder = {
   ],
   growthScore: 68,
   scoreStatus: "Growth Potential: High",
+  diagnosticAnswers: KAVYA_DEMO_ANSWERS,
   categoryScores: {
-    product: 82,
-    sales: 63,
-    branding: 57,
-    marketing: 44,
-    customerReach: 65,
-    fundingReadiness: 70
+    product: 85,
+    sales: 70,
+    branding: 60,
+    marketing: 50,
+    customerReach: 70,
+    fundingReadiness: 75
   },
   topGaps: [
     {
       id: "gap-1",
       dimension: "Marketing",
-      score: 44,
+      score: 50,
       diagnosis: "Your product has traction, but your customer acquisition strategy is underdeveloped and relies on erratic organic posts.",
       actionText: "Fix this",
       actionUrl: "/marketing"
@@ -58,7 +60,7 @@ const defaultKavyaFounder = {
     {
       id: "gap-2",
       dimension: "Branding",
-      score: 57,
+      score: 60,
       diagnosis: "Your brand positioning is unclear compared with competing national D2C healthy snack brands.",
       actionText: "Improve branding",
       actionUrl: "/roadmap"
@@ -66,7 +68,7 @@ const defaultKavyaFounder = {
     {
       id: "gap-3",
       dimension: "Sales Growth",
-      score: 63,
+      score: 70,
       diagnosis: "Revenue exists (₹1.8L), but growth has been inconsistent month-on-month without recurring retention funnels.",
       actionText: "View strategy",
       actionUrl: "/roadmap"

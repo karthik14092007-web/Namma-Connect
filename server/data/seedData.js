@@ -36,26 +36,26 @@ const demoFounder = {
   growthScore: 68,
   scoreStatus: "Growth Potential: High",
   categoryScores: {
-    product: 82,
-    sales: 63,
-    branding: 57,
-    marketing: 44,
-    customerReach: 65,
-    fundingReadiness: 70
+    product: 85,
+    sales: 70,
+    branding: 60,
+    marketing: 50,
+    customerReach: 70,
+    fundingReadiness: 75
   },
   topGaps: [
     {
       id: "gap-1",
       dimension: "Marketing",
-      score: 44,
-      diagnosis: "Your product has organic love and early traction, but your paid customer acquisition strategy is scattered and relies solely on word of mouth.",
+      score: 50,
+      diagnosis: "Your customer acquisition strategy relies on ad-hoc posts without a measured, repeatable channel.",
       actionText: "Fix this",
       actionUrl: "/marketing"
     },
     {
       id: "gap-2",
       dimension: "Branding",
-      score: 57,
+      score: 60,
       diagnosis: "Brand packaging and digital storytelling do not clearly communicate your health benefits compared with national legacy snack brands.",
       actionText: "Improve branding",
       actionUrl: "/roadmap"

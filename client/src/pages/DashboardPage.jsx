@@ -21,6 +21,9 @@ import GrowthScoreBadge from '../components/GrowthScoreBadge';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { calculateGrowthDiagnostic } from '../scoring/scoringEngine';
+import { detectBottlenecksAndActions } from '../scoring/recommendationEngine';
+import { KAVYA_DEMO_ANSWERS } from '../scoring/demoAnswers';
 
 export default function DashboardPage({ setCurrentView }) {
   const { activeFounder, roadmapTasks, mentors, fundingOpportunities } = useFounder();
@@ -34,6 +37,11 @@ export default function DashboardPage({ setCurrentView }) {
   const topMentor = mentors[0];
   const topFunding = fundingOpportunities[0];
   const greetingFounder = activeFounder.founderName || 'Kavya';
+
+  // Transparent Rule-Based Diagnostic Calculation
+  const answers = activeFounder?.diagnosticAnswers || KAVYA_DEMO_ANSWERS;
+  const diagnostic = calculateGrowthDiagnostic(answers, activeFounder.businessStage || 'Early traction');
+  const bottleneckData = detectBottlenecksAndActions(diagnostic.factors);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
@@ -65,55 +73,132 @@ export default function DashboardPage({ setCurrentView }) {
         </div>
       </div>
 
-      {/* ---------------- 1. BRAND GROWTH SCORE (Hero Card) ---------------- */}
+      {/* ---------------- 1. GROWTH DIAGNOSTIC (Rule-Based Hero Card) ---------------- */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-brand-600" />
-            <span>Diagnosis Overview (Where is my business today?)</span>
+            <span>Growth Readiness Diagnostic (Where is my business today?)</span>
           </h2>
-          <span className="text-xs text-slate-400 hidden sm:inline">6-Factor Evaluation</span>
+          <span className="text-xs text-slate-400 hidden sm:inline">6 Factors • 24 Observable Signals</span>
         </div>
 
         <GrowthScoreBadge
-          score={activeFounder.growthScore}
-          status={activeFounder.scoreStatus}
+          score={diagnostic.overallScore}
+          status={diagnostic.maturity}
           categoryScores={activeFounder.categoryScores}
+          founderAnswers={answers}
+          businessStage={activeFounder.businessStage}
         />
       </div>
 
-      {/* ---------------- 2. YOUR BIGGEST GROWTH GAPS (Section 6) ---------------- */}
+      {/* ---------------- 2. BOTTLENECK DETECTION & NEXT BEST ACTION ---------------- */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <Badge variant="rose" size="sm" className="mb-1">
-              Prioritized Bottlenecks (What's holding me back?)
-            </Badge>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Your biggest growth gaps
-            </h2>
+        {/* Dynamic Bottleneck Callout Banner */}
+        <div className="p-4 sm:p-5 bg-linear-to-r from-amber-50 via-rose-50 to-slate-50 rounded-3xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
+              <AlertTriangle className="w-5 h-5 text-amber-200" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                  Primary Constraint Detected
+                </span>
+                <span className="text-xs text-slate-500 font-mono">
+                  {bottleneckData.primaryBottleneck.label}: {bottleneckData.primaryBottleneck.score}/100
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                {bottleneckData.summaryHeadline}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {bottleneckData.summarySubtitle}
+              </p>
+            </div>
           </div>
+
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => setCurrentView('roadmap')}
             icon={ArrowRight}
             iconPosition="right"
+            className="shrink-0 text-xs font-bold self-start sm:self-auto"
           >
             See 30-Day Fix Plan
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          {(activeFounder.topGaps || []).map((gap, index) => {
+        {/* Rule-Based Next Best Action Card */}
+        <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-md border border-slate-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                Rule-Based Next Best Action
+              </span>
+              <span className="text-xs text-slate-400">• Priority Recommendation</span>
+            </div>
+            <span className="text-[11px] font-mono text-slate-400">
+              Stage: {diagnostic.stageProfile?.label}
+            </span>
+          </div>
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="inline-block text-[11px] font-bold text-amber-300 bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/40">
+                Priority: {bottleneckData.nextBestAction.priority}
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-white leading-snug">
+                {bottleneckData.nextBestAction.title}
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {bottleneckData.nextBestAction.explanation}
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setCurrentView(bottleneckData.nextBestAction.actionUrl)}
+              className="shrink-0 text-xs font-black gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 self-start lg:self-center"
+            >
+              <span>{bottleneckData.nextBestAction.actionText}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Transparent Citation: Why This Recommendation? */}
+          <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-slate-400">
+            <span className="font-extrabold text-slate-300 shrink-0 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              Why this recommendation?
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {bottleneckData.nextBestAction.whyRecommendation.map((cite) => (
+                <span
+                  key={cite.factor}
+                  className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md font-mono text-[10px] border border-slate-700"
+                >
+                  {cite.factor} = <strong className="text-emerald-400 font-bold">{cite.score}/100</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Prioritized Diagnostic Gap Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 pt-2">
+          {bottleneckData.topGaps.map((gap, index) => {
             const gapNumber = `0${index + 1}`;
-            const isHighPriority = index < 2;
+            const isTop = index === 0;
 
             return (
               <div
                 key={gap.id || index}
                 className={`p-6 rounded-2xl border bg-white shadow-soft flex flex-col justify-between transition-all hover:-translate-y-0.5 ${
-                  index === 0
+                  isTop
                     ? 'border-amber-300 ring-1 ring-amber-400/20 shadow-xs'
                     : 'border-slate-200/80'
                 }`}
@@ -133,11 +218,8 @@ export default function DashboardPage({ setCurrentView }) {
                     <h3 className="text-base font-bold text-slate-900 leading-snug">
                       {gap.dimension}
                     </h3>
-                    <Badge
-                      variant={isHighPriority ? 'rose' : 'warning'}
-                      size="sm"
-                    >
-                      {isHighPriority ? 'HIGH PRIORITY' : 'MEDIUM PRIORITY'}
+                    <Badge variant={gap.priority.variant} size="sm">
+                      {gap.priority.label}
                     </Badge>
                   </div>
 

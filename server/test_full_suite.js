@@ -1,6 +1,5 @@
 // server/test_full_suite.js
 const http = require("http");
-require("./index.js");
 
 function get(url) {
   return new Promise((resolve, reject) => {
@@ -51,8 +50,23 @@ function post(url, body) {
   });
 }
 
-setTimeout(async () => {
+function checkServerUp() {
+  return new Promise((resolve) => {
+    const req = http.get("http://localhost:5000/api/health", (res) => {
+      resolve(res.statusCode === 200);
+    });
+    req.on("error", () => resolve(false));
+  });
+}
+
+(async () => {
   try {
+    const isUp = await checkServerUp();
+    if (!isUp) {
+      require("./index.js");
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
     console.log("=== Running Namma-Connect Full Verification Suite ===");
 
     // 1. Health
@@ -64,8 +78,8 @@ setTimeout(async () => {
     const founder = demo.data.founder;
     console.log(`✓ /api/demo/kavya: Founder: ${founder.founderName}, Brand: ${founder.brandName}, Growth Score: ${founder.growthScore}/100`);
     if (founder.growthScore !== 68) throw new Error("Expected Growth Score 68 for Kavya!");
-    if (founder.topGaps[0].dimension !== "Marketing" || founder.topGaps[0].score !== 44) {
-      throw new Error("Expected Top Gap 1 to be Marketing (44)!");
+    if (founder.topGaps[0].dimension !== "Marketing" || founder.topGaps[0].score !== 50) {
+      throw new Error(`Expected Top Gap 1 to be Marketing (50), got ${founder.topGaps[0].dimension} (${founder.topGaps[0].score})!`);
     }
 
     // 3. Mentors & Explainable Matching
@@ -120,4 +134,4 @@ setTimeout(async () => {
     console.error("Test Suite Error:", err);
     process.exit(1);
   }
-}, 1000);
+})();
