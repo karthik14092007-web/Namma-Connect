@@ -19,6 +19,7 @@ import MarketplacePage from './pages/MarketplacePage';
 import FounderProfilePage from './pages/FounderProfilePage';
 import AdminPage from './pages/AdminPage';
 import LaunchReelsPage from './pages/reels/LaunchReelsPage';
+import BrandAIPage from './pages/brand-ai/BrandAIPage';
 
 function AppRouter() {
   const [currentView, setCurrentView] = useState('landing');
@@ -47,6 +48,8 @@ function AppRouter() {
         );
       case 'funding':
         return <FundingPage setCurrentView={setCurrentView} />;
+      case 'brand-ai':
+        return <BrandAIPage setCurrentView={setCurrentView} />;
       case 'launch-reels':
         return <LaunchReelsPage setCurrentView={setCurrentView} />;
       case 'marketing':

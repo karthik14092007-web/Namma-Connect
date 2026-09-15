@@ -38,6 +38,7 @@ export default function Sidebar({
     { id: 'roadmap', label: 'Growth Plan', icon: Target },
     { id: 'mentors', label: 'Mentors', icon: Users },
     { id: 'funding', label: 'Funding', icon: Coins },
+    { id: 'brand-ai', label: 'Brand AI', icon: Sparkles, badge: 'AI' },
     { id: 'launch-reels', label: 'Launch Reels', icon: Video, badge: 'New' },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
     { id: 'marketing', label: 'Marketing Hub', icon: Megaphone },
