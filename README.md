@@ -1,105 +1,105 @@
-# Namma-Connect 🚀
+# Namma-Connect — D2C Growth Operating System
 
-**Namma-Connect** is a digital growth platform built for **early-stage D2C founders**, especially rural, small-town, and unstructured urban brands that struggle with marketing, branding, sales growth, mentorship, and funding.
+> **"Your product is ready. Is your growth strategy?"**
 
-## 🎯 The Problem
+Namma-Connect is a digital growth operating system built for early-stage D2C founders, especially rural entrepreneurs, small-town startups, and unstructured urban brands across Bharat. It transforms raw business information into an actionable 30-day roadmap and connects founders with vetted mentors, stage-appropriate capital, and targeted customers.
 
-India has thousands of promising D2C businesses with great products but limited access to the resources required to scale.
+---
 
-Many early-stage founders struggle to answer critical questions:
+## 🌟 Core Product Journey
 
-* Why are my sales not growing consistently?
-* Is my branding strong enough?
-* Who is my ideal customer?
-* What should I focus on next?
-* Which mentor can actually help my business?
-* Which funding opportunity is suitable for my stage?
+$$\text{Assess} \longrightarrow \text{Diagnose} \longrightarrow \text{Plan} \longrightarrow \text{Match} \longrightarrow \text{Market} \longrightarrow \text{Grow}$$
 
-Existing platforms often solve these problems separately. Founders may need to search across marketplaces, social media, mentorship networks, funding platforms, and government schemes to find relevant opportunities.
+Every screen answers one pivotal founder question:
+- **Dashboard:** *Where am I?*
+- **Growth Score:** *What's wrong?*
+- **Growth Plan:** *What should I do?*
+- **Mentor Match:** *Who can help?*
+- **Funding Match:** *Who can fund me?*
+- **Marketing Hub:** *Who should I reach?*
+- **Marketplace:** *Where can I sell?*
 
-**Namma-Connect brings these growth requirements together in one platform.**
+---
 
-## 💡 Our Solution
+## ⚡ Hackathon Demo Persona: Kavya (Namma Crunch)
 
-Namma-Connect follows a simple journey:
+For instant evaluator testing, a dedicated **"⚡ Load Demo Persona (Kavya)"** button is accessible in the top navigation bar.
 
-**Assess → Diagnose → Plan → Connect → Market → Grow**
+| Parameter | Demo Value |
+| :--- | :--- |
+| **Founder** | Kavya |
+| **Brand** | Namma Crunch |
+| **Location** | Madurai, Tamil Nadu |
+| **Category** | Healthy snacks (Roasted Millets) |
+| **Stage** | Early traction |
+| **Monthly Revenue** | ₹1.8L (Inconsistent velocity) |
+| **Funding Requirement** | ₹7L (Marketing, Expansion, Packaging) |
+| **Brand Growth Score** | **68 / 100** (Growth Potential: High) |
+| **Top Growth Gap 01** | **Marketing (44/100)** — Paid acquisition underdeveloped |
+| **Top Growth Gap 02** | **Branding (57/100)** — Positioning unclear vs national brands |
+| **Top Growth Gap 03** | **Sales Growth (63/100)** — Irregular reorder funnels |
+| **Top Mentor Match** | **Priya Sharma (94% Match)** — ₹499 / session |
+| **Top Funding Fit** | **Stand-Up India Scheme (88% Fit)** — ₹10L Facility |
+| **Target Audience Fit** | **Health-conscious families (91% Fit)** |
 
-Founders first create a business profile containing information such as their industry, business stage, revenue, funding requirements, growth challenges, target audience, and location.
+---
 
-The platform then generates a **Business Growth Score**, identifies the founder's biggest growth gaps, and creates a personalized growth roadmap.
+## 🧠 Explainable Matching Algorithm
 
-Based on the founder's profile, Namma-Connect recommends relevant:
+Namma-Connect implements a transparent, explainable weighted scoring model rather than an opaque black box:
 
-* 🤝 Mentors
-* 💰 Investors and funding opportunities
-* 📈 Marketing opportunities
-* 🛍️ D2C customers and marketplace opportunities
-* 🏛️ Government schemes
-🧠 Smart Matching
+$$\text{Score} = (\text{Stage} \times 30\%) + (\text{Industry} \times 20\%) + (\text{Growth Need} \times 20\%) + (\text{Funding Fit} \times 15\%) + (\text{Location} \times 10\%) + (\text{Language} \times 5\%)$$
 
-One of Namma-Connect's core features is its explainable matching engine.
+Every match card features a **"Why this match? →"** button that reveals:
+- Exact points earned in each category (e.g. `Stage: 29/30`, `Industry: 20/20`, `Growth Need: 19/20`, `Location: 9/10`, `Language: 5/5`)
+- Qualitative bullet points explaining why the mentor or funding scheme fits the founder's specific bottlenecks.
 
-Instead of simply showing a recommendation such as "94% Match", the platform explains why the match was generated.
+---
 
-Matching can consider:
+## 🚀 Key Features
 
-Business stage
-Industry
-Growth requirements
-Funding requirements
-Location
-Language
-Mentor expertise
+1. **High-Impact Landing Page**: Hero with live dashboard preview, 4 core problem cards, and 4-step horizontal workflow.
+2. **4-Step Founder Onboarding**: Business information, growth metrics & revenue, funding requirements, and mentorship preferences.
+3. **Founder Dashboard**: Brand Growth Score circular gauge, 6-dimension breakdown (Product, Sales, Branding, Marketing, Reach, Funding), and prioritized top 3 gaps with 1-click fixes.
+4. **Personalized 30-Day Growth Plan**: 4-week structured timeline with status toggling, priority badges, estimated effort, and completion tracker.
+5. **Smart Mentor Matching**: Vetted D2C mentors, consultation fee transparency (₹499/session), and instant booking modal.
+6. **Stage-Fit Funding Engine**: Government schemes (Stand-Up India, Mudra, SISFS), innovation grants, and regional angel syndicates with document eligibility checklists.
+7. **Founder Marketing Hub**: Micro-campaign builder (₹500 test budget) and prototype campaign analytics dashboard (Reach: 8,420, Relevant: 72%, Views: 684, Clicks: 143, Conversions: 27).
+8. **D2C Marketplace**: Regional product showcase (Millet Crunch, Virgin Sesame Oil, Handcrafted Cookware) with founder stories and 1-click listing.
+9. **Founder & Mentor Profiles**: Verified Founder and Proof of Work trust badges.
+10. **Founder Notifications**: Real-time alerts on score changes, mentor matches, and roadmap progress.
+11. **Admin Analytics**: Ecosystem growth metrics, founder registrations, and category revenue charts.
 
-This creates a transparent recommendation system that helps founders understand why a particular mentor, investor, or opportunity is relevant to them.
+---
 
-📣 Targeted Marketing
+## 🛠️ Tech Stack & Architecture
 
-Namma-Connect also helps D2C founders promote their products to relevant audiences.
+- **Frontend**: React 18, Vite, Tailwind CSS, Lucide React, Recharts
+- **Backend**: Node.js, Express.js REST API
+- **Database**: MongoDB with Mongoose + Automatic In-Memory / JSON Resilient Store (Zero-config setup: runs smoothly with or without a local MongoDB service)
 
-Instead of relying entirely on follower count or unpredictable social-media algorithms, founders can define their target audience based on factors such as:
+---
 
-Customer type
-Product category
-Location
-Interests
-Campaign objective
+## 🏃 Running the Application
 
-This enables founders to focus on relevant reach rather than scattered visibility.
+### 1. Install Dependencies
+```bash
+npm run install-all
+```
 
-🛠️ Technology Stack
+### 2. Start the Server (Hosts API + Built Frontend on Port 5000)
+```bash
+npm start
+```
+Open **http://localhost:5000** in your browser.
 
-The prototype is designed using:
+### 3. (Optional) Run Vite Frontend in Hot-Reload Dev Mode
+```bash
+npm run client
+```
+Open **http://localhost:5173** in your browser.
 
-Frontend: React.js
-Backend: Node.js + Express.js
-Database: MongoDB
-APIs: REST APIs
-Recommendation Engine: Explainable weighted matching algorithm
-
-The architecture is intentionally lightweight and modular so additional services such as payment gateways, video consultations, advanced analytics, and ML-based recommendations can be integrated later.
-
-🌱 Future Scope
-
-Namma-Connect can evolve into a complete growth ecosystem for emerging D2C brands by introducing:
-
-AI-powered growth recommendations
-Local-language and voice-based onboarding
-Real-time mentor consultations
-Secure payment integration
-Advanced customer analytics
-Verified investor onboarding
-Personalized marketing automation
-Integration with government and MSME ecosystems
-🏆 Vision
-
-Namma-Connect aims to bridge the gap between having a great product and building a scalable brand.
-
-Our vision is simple:
-
-Connect the right founder to the right opportunity at the right stage.
-
-Namma-Connect isn't just another marketplace or networking platform.
-
-It's a growth layer designed to help early-stage D2C founders understand what they need next — and connect them with the people, opportunities, and markets that can help them get there.
+### 4. Run Automated Verification Tests
+```bash
+node server/test_full_suite.js
+```
