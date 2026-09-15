@@ -1,0 +1,19 @@
+{
+  "name": "namma-connect-monorepo",
+  "version": "1.0.0",
+  "description": "Namma-Connect - Growth Operating System for Early-Stage D2C Founders",
+  "scripts": {
+    "server": "node server/index.js",
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "d2c",
+    "growth",
+    "founder-ecosystem",
+    "startups"
+  ],
+  "author": "Namma-Connect Team",
+  "license": "MIT"
+}
