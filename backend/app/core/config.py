@@ -27,9 +27,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
 
     # Application Settings
+    app_name: str = "Namma-Connect Growth OS API"
     port: int = 5000
     environment: str = "development"
     client_url: str = "http://localhost:5173"
+
 
     @property
     def is_database_configured(self) -> bool:

@@ -69,3 +69,8 @@ class FactorExplanationResponse(BaseModel):
     status: str
     confidence: str
     evidence: List[FactorEvidence]
+
+
+AssessmentSubmitRequest = DiagnosticSubmission
+AssessmentResponse = DiagnosticResultResponse
+

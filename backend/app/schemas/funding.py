@@ -23,3 +23,7 @@ class FundingResponse(BaseModel):
 class FundingApplicationRequest(BaseModel):
     businessId: Optional[str] = None
     notes: Optional[str] = None
+
+
+FundingApplicationCreate = FundingApplicationRequest
+
