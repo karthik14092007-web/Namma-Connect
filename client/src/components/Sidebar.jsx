@@ -14,6 +14,7 @@ import {
   Sparkles,
   ArrowUpRight,
   TrendingUp,
+  Video,
   X
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
@@ -37,6 +38,7 @@ export default function Sidebar({
     { id: 'roadmap', label: 'Growth Plan', icon: Target },
     { id: 'mentors', label: 'Mentors', icon: Users },
     { id: 'funding', label: 'Funding', icon: Coins },
+    { id: 'launch-reels', label: 'Launch Reels', icon: Video, badge: 'New' },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
     { id: 'marketing', label: 'Marketing Hub', icon: Megaphone },
     { id: 'profile', label: 'My Brand', icon: UserCheck },
@@ -128,6 +130,11 @@ export default function Sidebar({
             >
               <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-600' : 'text-slate-400'}`} />
               <span className="truncate">{link.label}</span>
+              {link.badge && (
+                <span className="ml-auto text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full border border-emerald-300">
+                  {link.badge}
+                </span>
+              )}
             </button>
           );
         })}

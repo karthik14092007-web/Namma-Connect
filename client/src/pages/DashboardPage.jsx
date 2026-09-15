@@ -13,6 +13,7 @@ import {
   Calendar,
   Clock,
   Zap,
+  Video,
   ArrowUpRight
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
@@ -332,13 +333,54 @@ export default function DashboardPage({ setCurrentView }) {
         </div>
       </div>
 
+      {/* ---------------- 3.5. LAUNCH REELS PROMO BANNER ---------------- */}
+      <div className="bg-linear-to-r from-emerald-950 via-slate-900 to-teal-950 rounded-3xl p-5 sm:p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-emerald-900/60">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+            <Video className="w-6 h-6 text-emerald-200" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                New Feature
+              </span>
+              <span className="text-xs text-slate-300 font-semibold">
+                Targeted D2C Video Marketing
+              </span>
+            </div>
+            <h3 className="text-base font-extrabold text-white mt-0.5">
+              Promote {activeFounder.brandName} with Launch Reels
+            </h3>
+            <p className="text-xs text-slate-300">
+              Reach ~8,420 regional buyers with 91% audience-fit scoring. No viral algorithm guessing.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setCurrentView('launch-reels')}
+          className="shrink-0 text-xs font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700"
+        >
+          <span>Explore Launch Reels</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
       {/* ---------------- 4. QUICK ACTION ECOSYSTEM LAUNCHERS ---------------- */}
       <div className="pt-2">
         <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">
           Growth Operating System Tools
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
           {[
+            {
+              view: 'launch-reels',
+              title: 'Launch Reels',
+              desc: 'Targeted D2C Video',
+              icon: Video,
+              color: 'text-emerald-700 bg-emerald-50'
+            },
             {
               view: 'marketing',
               title: 'Marketing Hub',

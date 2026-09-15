@@ -30,6 +30,7 @@ export default function AppHeader({
     mentors: 'Smart Mentor Matching',
     'mentor-profile': 'Mentor Profile',
     funding: 'Funding & Grants Fit',
+    'launch-reels': 'Launch Reels (Targeted D2C Video)',
     marketplace: 'D2C Marketplace',
     marketing: 'Founder Marketing Hub',
     profile: 'Public Founder Profile',
