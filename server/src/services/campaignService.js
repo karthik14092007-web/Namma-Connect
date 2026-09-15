@@ -2,10 +2,12 @@
 const { db } = require('../lib/prisma');
 const { logAudit } = require('./auditService');
 
-async function listCampaigns(founderId) {
+async function listCampaigns(arg) {
+  const founderId = (typeof arg === 'object' && arg !== null) ? arg.founderId : arg;
   const where = founderId ? { founderId } : {};
   return db.campaign.findMany({ where });
 }
+
 
 async function getCampaignById(id) {
   const campaign = await db.campaign.findUnique({ where: { id } });

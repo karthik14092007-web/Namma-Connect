@@ -149,7 +149,9 @@ async function getFounderApplications(founderId) {
 module.exports = {
   calculateFundingFit,
   listOpportunities,
+  listFundingOpportunities: listOpportunities,
   getOpportunityById,
   applyForFunding,
   getFounderApplications
 };
+
