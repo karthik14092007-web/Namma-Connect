@@ -1,6 +1,8 @@
 // server/index.js
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -517,6 +519,17 @@ app.get("/api/admin/metrics", (req, res) => {
     }
   });
 });
+
+// Serve static client assets in production if client/dist exists
+const clientDistPath = path.join(__dirname, "../client/dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get("*", (req, res) => {
+    if (!req.path.startsWith("/api")) {
+      res.sendFile(path.join(clientDistPath, "index.html"));
+    }
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`[Namma-Connect] Server listening on http://localhost:${PORT}`);

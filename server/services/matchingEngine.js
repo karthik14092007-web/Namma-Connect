@@ -133,13 +133,16 @@ function matchFundingOpportunity(founder, opp) {
   }
 
   // Dynamic matching for funding opportunities
-  let stageScore = opp.eligibleStages?.includes(founder.businessStage) ? 28 : 16;
-  let industryScore = opp.industryScope?.some((i) => (founder.industry || "").toLowerCase().includes(i.toLowerCase())) ? 20 : 12;
-  let fundingFitScore = 13;
+  let stageScore = opp.eligibleStages?.includes(founder.businessStage) ? 26 : 16;
+  let industryScore = opp.industryScope?.some((i) => (founder.industry || "").toLowerCase().includes(i.toLowerCase())) ? 18 : 12;
+  let fundingFitScore = 12;
   let needScore = 14;
-  let locationScore = 9;
+  let locationScore = 10;
 
-  const totalScore = Math.min(95, Math.max(50, Math.round((stageScore + industryScore + fundingFitScore + needScore + locationScore) * 1.15)));
+  let totalScore = stageScore + industryScore + fundingFitScore + needScore + locationScore;
+  if (isKavya) {
+    totalScore = Math.min(84, totalScore);
+  }
 
   const reasons = [
     `Aligned with ${founder.businessStage || "your current"} business stage`,
@@ -148,7 +151,7 @@ function matchFundingOpportunity(founder, opp) {
   ];
 
   return {
-    matchPercentage: Math.min(94, totalScore),
+    matchPercentage: Math.min(86, totalScore),
     breakdown: {
       stage: { score: stageScore, max: 30, label: "Business Stage Fit" },
       industry: { score: industryScore, max: 20, label: "Industry Eligibility" },
