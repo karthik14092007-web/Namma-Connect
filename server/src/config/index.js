@@ -1,9 +1,25 @@
 // server/src/config/index.js
+const path = require('path');
 const dotenv = require('dotenv');
+
+// Load environment variables from possible locations
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
+];
+
+if (process.env.CLIENT_URL && !allowedOrigins.includes(process.env.CLIENT_URL)) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 module.exports = {
-  port: process.env.PORT || 5000,
+  port: parseInt(process.env.PORT, 10) || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nammaconnect?schema=public',
   jwt: {
@@ -13,7 +29,14 @@ module.exports = {
     refreshExpiresInDays: 7
   },
   cors: {
-    origin: process.env.CLIENT_URL ? [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5000'] : true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, postman, or browser direct navigation)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive in development, but credentialed
+      }
+    },
     credentials: true
   },
   rateLimit: {
@@ -25,3 +48,4 @@ module.exports = {
     max: 30 // 30 requests per 15 mins on auth
   }
 };
+

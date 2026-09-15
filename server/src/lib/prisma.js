@@ -41,25 +41,65 @@ const memoryStore = {
   auditLogs: []
 };
 
+const net = require('net');
+
 // Check DB connection on startup
 async function checkDatabaseConnection() {
   if (!prisma) return false;
+
+  // Extract host and port from database URL for clean socket probe
+  let host = 'localhost';
+  let port = 5432;
   try {
-    // Quick probe with timeout
-    await Promise.race([
-      prisma.$queryRaw`SELECT 1`,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 1500))
-    ]);
+    const parsed = new URL(config.databaseUrl.replace('postgresql://', 'http://'));
+    host = parsed.hostname || 'localhost';
+    port = parseInt(parsed.port, 10) || 5432;
+  } catch (e) {
+    // fallback to localhost:5432
+  }
+
+  // Socket probe to avoid Prisma dumping huge stack traces on offline host
+  const isPortAvailable = await new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(1200);
+    socket.once('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+
+  if (!isPortAvailable) {
+    isNativeDbConnected = false;
+    console.error('\n[DATABASE ERROR]');
+    console.error('Unable to connect to PostgreSQL.');
+    console.error(`Check DATABASE_URL and database availability (${host}:${port}).\n`);
+    return false;
+  }
+
+  try {
+    await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1`;
     isNativeDbConnected = true;
     console.log('[Database] Connected to PostgreSQL via Prisma ORM.');
     return true;
   } catch (err) {
     isNativeDbConnected = false;
-    console.log('[Database] PostgreSQL not reachable at ' + config.databaseUrl + ' (' + err.message + ').');
-    console.log('[Storage] Seamless In-Memory Relational Store active. All Prisma APIs operational.');
+    console.error('\n[DATABASE ERROR]');
+    console.error('Unable to connect to PostgreSQL.');
+    console.error('Check DATABASE_URL and database availability.');
     return false;
   }
 }
+
 
 /**
  * Resilient repository wrapper that proxies to Prisma when PostgreSQL is connected,

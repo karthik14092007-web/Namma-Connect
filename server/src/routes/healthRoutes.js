@@ -4,14 +4,21 @@ const router = express.Router();
 const { db } = require('../lib/prisma');
 
 router.get('/health', async (req, res) => {
-  res.json({
-    success: true,
-    status: 'healthy',
-    app: 'Namma-Connect Production Backend OS',
-    version: '1.0.0',
-    database: db.isConnected ? 'connected' : 'resilient-in-memory-active',
-    timestamp: new Date().toISOString()
-  });
+  if (db.isConnected) {
+    return res.status(200).json({
+      success: true,
+      status: 'healthy',
+      service: 'namma-connect-api',
+      database: 'connected'
+    });
+  } else {
+    return res.status(200).json({
+      success: false,
+      status: 'degraded',
+      service: 'namma-connect-api',
+      database: 'disconnected'
+    });
+  }
 });
 
 module.exports = router;

@@ -39,13 +39,39 @@ const app = express();
 
 // Security Middlewares
 app.use(helmet({
-  contentSecurityPolicy: false // Allow SPA inline styles and Vite dev assets
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: false
 }));
 app.use(cors(config.cors));
 app.use(cookieParser());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use('/api', apiLimiter);
+
+// ----------------------------------------------------
+// Health Check Handlers (v1 & legacy)
+// ----------------------------------------------------
+const handleHealth = (req, res) => {
+  if (db.isConnected) {
+    return res.status(200).json({
+      success: true,
+      status: 'healthy',
+      service: 'namma-connect-api',
+      database: 'connected'
+    });
+  } else {
+    return res.status(200).json({
+      success: false,
+      status: 'degraded',
+      service: 'namma-connect-api',
+      database: 'disconnected'
+    });
+  }
+};
+
+app.get('/api/v1/health', handleHealth);
+app.get('/api/health', handleHealth);
 
 // ----------------------------------------------------
 // Modern REST API (v1)
@@ -65,79 +91,103 @@ app.use('/api/v1/admin', adminRoutes);
 // ----------------------------------------------------
 // Compatibility Aliases for Existing Frontend (Zero Breakage)
 // ----------------------------------------------------
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    app: 'Namma-Connect API (PostgreSQL + Prisma OS)',
-    version: '1.0.0',
-    time: new Date().toISOString()
-  });
-});
+const handleKavyaDemo = async (req, res) => {
+  try {
+    let user = await db.user.findFirst({ where: { email: 'kavya@nammacrunch.in' } });
+    if (!user) {
+      await seed();
+      user = await db.user.findFirst({ where: { email: 'kavya@nammacrunch.in' } });
+    }
 
-app.get('/api/demo/kavya', async (req, res) => {
-  // Clear and reseed benchmark state
-  db.store.users = [];
-  db.store.founderProfiles = [];
-  db.store.businesses = [];
-  db.store.diagnosticAssessments = [];
-  db.store.diagnosticResponses = [];
-  db.store.diagnosticFactorScores = [];
-  db.store.growthPlans = [];
-  db.store.growthActions = [];
-  db.store.mentorProfiles = [];
-  db.store.mentorMatches = [];
-  db.store.fundingOpportunities = [];
-  db.store.fundingApplications = [];
-  db.store.campaigns = [];
-  db.store.campaignAudiences = [];
-  db.store.campaignAnalytics = [];
-  db.store.marketplaceProducts = [];
-  db.store.notifications = [];
+    const profile = await db.founderProfile.findFirst({ where: { userId: user.id } });
+    const business = await db.business.findFirst({ where: { founderId: user.id } });
+    const diag = await db.diagnosticAssessment.findFirst({ where: { businessId: business?.id } });
+    const growthPlan = business ? await db.growthPlan.findFirst({ where: { businessId: business.id } }) : null;
+    const mentorMatches = business ? await mentorService.getMatchesForBusiness(business.id) : [];
+    const fundingMatches = business ? await fundingService.getOpportunitiesForBusiness(business.id) : [];
+    const campaigns = business ? await campaignService.getCampaignsByBusiness(business.id) : [];
 
-  await seed();
+    const founderPayload = {
+      id: user.id,
+      founderName: `${user.firstName} ${user.lastName}`,
+      brandName: business ? business.name : 'Namma Crunch',
+      location: business ? business.location : 'Madurai, Tamil Nadu',
+      industry: business ? business.category : 'Food & Beverages',
+      productCategory: 'Artisanal Healthy Snacks',
+      businessStage: 'Early traction',
+      monthlyRevenue: business ? business.monthlyRevenue : '₹1.8L',
+      actualMonthlyRevenue: business ? business.monthlyRevenue : '₹1.8L',
+      fundingRequirement: business ? business.fundingRequirement : '₹7L',
+      growthScore: diag ? diag.overallScore : 68,
+      scoreStatus: diag && diag.overallScore >= 60 ? 'Ready for Focused Growth' : 'Developing',
+      categoryScores: {
+        Product: 85,
+        Sales: 70,
+        Branding: 60,
+        Marketing: 50,
+        Reach: 70,
+        Funding: 75
+      },
+      topGaps: [
+        { category: 'Marketing', score: 50, priority: 'Critical Gap', recommendation: 'Define Target Customer & Sharpen Positioning' },
+        { category: 'Branding', score: 60, priority: 'High Priority', recommendation: 'Establish Consistent Visual Identity' },
+        { category: 'Sales', score: 70, priority: 'Developing', recommendation: 'Optimize Repeat Purchases & Margins' }
+      ],
+      verified: true,
+      proofOfWork: true,
+      certifications: ['FSSAI Verified / Udyam Registered'],
+      achievements: ['First 500 happy customers', 'Local retail presence']
+    };
 
-  const user = await db.user.findFirst({ where: { email: 'kavya@nammacrunch.in' } });
-  const profile = await db.founderProfile.findFirst({ where: { userId: user.id } });
-  const business = await db.business.findFirst({ where: { founderId: user.id } });
-  const diag = await db.diagnosticAssessment.findFirst({ where: { businessId: business.id } });
+    const businessPayload = business || {
+      id: 'biz-kavya-1',
+      name: 'Namma Crunch',
+      category: 'Food & Beverages',
+      stage: 'Early traction',
+      monthlyRevenue: '₹1.8L',
+      location: 'Madurai, Tamil Nadu'
+    };
 
-  const founderPayload = {
-    id: user.id,
-    founderName: `${user.firstName} ${user.lastName}`,
-    brandName: business.name,
-    location: business.location,
-    industry: business.category,
-    productCategory: 'Artisanal Healthy Snacks',
-    businessStage: 'Early traction',
-    monthlyRevenue: business.monthlyRevenue,
-    actualMonthlyRevenue: business.monthlyRevenue,
-    fundingRequirement: business.fundingRequirement,
-    growthScore: diag ? diag.overallScore : 68,
-    scoreStatus: diag && diag.overallScore >= 60 ? 'Ready for Focused Growth' : 'Developing',
-    categoryScores: {
-      Product: 85,
-      Sales: 70,
-      Branding: 60,
-      Marketing: 50,
-      Reach: 70,
-      Funding: 75
-    },
-    topGaps: [
-      { category: 'Marketing', score: 50, priority: 'Critical Gap', recommendation: 'Define Target Customer & Sharpen Positioning' },
-      { category: 'Branding', score: 60, priority: 'High Priority', recommendation: 'Establish Consistent Visual Identity' },
-      { category: 'Sales', score: 70, priority: 'Developing', recommendation: 'Optimize Repeat Purchases & Margins' }
-    ],
-    verified: true,
-    proofOfWork: true,
-    certifications: ['FSSAI Verified / Udyam Registered'],
-    achievements: ['First 500 happy customers', 'Local retail presence']
-  };
+    const diagnosticPayload = diag || {
+      overallScore: 68,
+      stage: 'Early traction',
+      categoryScores: founderPayload.categoryScores,
+      topGaps: founderPayload.topGaps
+    };
 
-  res.json({
-    message: 'Demo persona (Kavya - Namma Crunch) loaded successfully.',
-    founder: founderPayload
-  });
-});
+    const growthPlanPayload = growthPlan || {
+      milestones: 12,
+      duration: '90 Days',
+      status: 'Active'
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Demo persona (Kavya - Namma Crunch) loaded successfully.',
+      founder: founderPayload,
+      data: {
+        founder: founderPayload,
+        business: businessPayload,
+        diagnostic: diagnosticPayload,
+        growthPlan: growthPlanPayload,
+        mentorMatches: mentorMatches || [],
+        fundingMatches: fundingMatches || [],
+        campaigns: campaigns || []
+      }
+    });
+  } catch (err) {
+    console.error('[Kavya Demo Route Error]:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to load demo persona',
+      code: 'DEMO_ERROR'
+    });
+  }
+};
+
+app.get('/api/demo/kavya', handleKavyaDemo);
+app.get('/api/v1/demo/kavya', handleKavyaDemo);
+
 
 app.post('/api/onboard', async (req, res) => {
   try {
