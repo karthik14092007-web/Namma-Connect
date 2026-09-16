@@ -22,22 +22,19 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import Badge from '../components/ui/Badge';
+import { localDataService } from '../services/localDataService';
 
 export default function AdminPage() {
   const [adminData, setAdminData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/admin/metrics')
-      .then((res) => res.json())
-      .then((data) => {
-        setAdminData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load admin metrics:', err);
-        setLoading(false);
-      });
+    try {
+      const data = localDataService.getAdminMetrics();
+      setAdminData(data);
+    } catch (err) {
+      console.error('Failed to load admin metrics:', err);
+    }
   }, []);
 
   const metrics = adminData?.metrics || {

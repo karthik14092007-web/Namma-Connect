@@ -20,7 +20,7 @@ export const DIAGNOSTIC_QUESTIONS = {
       options: [
         { score: 0, label: 'No specific customer identified', desc: 'Selling broadly without defined customer criteria' },
         { score: 20, label: 'Broad idea of who might buy', desc: 'General demographic assumptions with no written documentation' },
-        { score: 40, label: 'Basic customer segment identified', desc: 'Identified broad age or lifestyle group (e.g., young families)' },
+        { score: 48, label: 'Basic customer segment identified', desc: 'Identified broad age or lifestyle group (e.g., young families)' },
         { score: 60, label: 'Specific customer profile documented', desc: 'Clear persona with dietary, geographic, and budget parameters' },
         { score: 80, label: 'Target customer consistently used in campaigns', desc: 'Promotions, copy, and packaging specifically tailored to this persona' },
         { score: 100, label: 'Clearly defined and validated customer segment', desc: 'Validated through repeated purchases and high conversion rates' }
@@ -35,7 +35,7 @@ export const DIAGNOSTIC_QUESTIONS = {
         { score: 0, label: 'No acquisition method', desc: 'No reliable way to bring in new potential buyers' },
         { score: 20, label: 'Only relying on personal network', desc: 'Sales only happen via friends, family, and direct referrals' },
         { score: 40, label: 'Experimenting with channels', desc: 'Testing social media posts, stalls, and whatsapp groups' },
-        { score: 60, label: 'One channel showing early consistency', desc: 'One channel (e.g. regional exhibitions or Launch Reels) brings steady leads' },
+        { score: 50, label: 'One channel showing early consistency', desc: 'One channel (e.g. regional exhibitions or Launch Reels) brings steady leads' },
         { score: 80, label: 'Repeatable acquisition process', desc: 'Documented routine that predictably generates new customer inquiries' },
         { score: 100, label: 'Proven and consistently performing acquisition channel', desc: 'High-ROI channel with measurable customer acquisition cost (CAC)' }
       ]
@@ -48,7 +48,7 @@ export const DIAGNOSTIC_QUESTIONS = {
       options: [
         { score: 0, label: 'No tracking', desc: 'Promotions are done without monitoring responses' },
         { score: 20, label: 'Only observing views and likes', desc: 'Looking at superficial social engagement metrics without sales correlation' },
-        { score: 40, label: 'Basic metrics occasionally checked', desc: 'Occasionally noting click counts and total weekly website visits' },
+        { score: 50, label: 'Basic metrics occasionally checked', desc: 'Occasionally noting click counts and total weekly website visits' },
         { score: 60, label: 'Regularly tracking campaign metrics', desc: 'Consistently reviewing click-through rates, lead volume, and order sources' },
         { score: 80, label: 'Comparing campaign performance', desc: 'Benchmarking channels to identify what drives actual paying orders' },
         { score: 100, label: 'Using data consistently to optimize marketing', desc: 'Allocating promotional budget strictly based on ROAS and conversion data' }
@@ -272,7 +272,7 @@ export const DIAGNOSTIC_QUESTIONS = {
         { score: 20, label: 'Single manual channel', desc: 'Only via direct WhatsApp message or personal phone call' },
         { score: 40, label: 'Functional D2C online store', desc: 'Own website or marketplace listing accepting digital payments' },
         { score: 60, label: 'Multi-channel presence', desc: 'Own D2C site plus 3–5 local gourmet retail outlets or community stalls' },
-        { score: 80, label: 'Established regional distribution network', desc: 'D2C online store, quick-commerce presence, and 20+ regional retail stockists' },
+        { score: 76, label: 'Established regional distribution network', desc: 'D2C online store, quick-commerce presence, and 20+ regional retail stockists' },
         { score: 100, label: 'Omnichannel national distribution', desc: 'Strong online presence, modern trade retail partnerships, and institutional supply' }
       ]
     },

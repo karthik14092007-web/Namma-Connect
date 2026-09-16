@@ -1,14 +1,24 @@
 // client/src/components/WhyThisScoreModal.jsx
-import React from 'react';
-import { X, CheckCircle2, AlertTriangle, HelpCircle, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, CheckCircle2, AlertTriangle, HelpCircle, ArrowRight, ShieldCheck, Sparkles, Sliders, Check } from 'lucide-react';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 import { getMaturityColor } from '../scoring/scoringEngine';
+import { DIAGNOSTIC_QUESTIONS } from '../scoring/diagnosticQuestions';
 
-export default function WhyThisScoreModal({ factorData, isOpen, onClose }) {
+export default function WhyThisScoreModal({ factorData, isOpen, onClose, onAnswerChange }) {
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+
   if (!isOpen || !factorData) return null;
 
   const color = getMaturityColor(factorData.score);
+  const factorQuestions = DIAGNOSTIC_QUESTIONS[factorData.id] || [];
+
+  const handleSelectOption = (questionId, score) => {
+    if (onAnswerChange) {
+      onAnswerChange(questionId, score);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
@@ -55,25 +65,31 @@ export default function WhyThisScoreModal({ factorData, isOpen, onClose }) {
               {factorData.formula}
             </div>
             <p className="text-[11px] text-slate-300 leading-snug">
-              Every point is calculated directly from your four assessment responses below. No arbitrary grading, no black-box ML.
+              Every point is calculated directly from your four assessment responses below. Select another option to test real-time score recalculation.
             </p>
           </div>
 
           {/* 4 Underlying Diagnostic Questions and Selected Options */}
           <div className="space-y-3">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500 block">
-              Observable Diagnostic Signals (4 Questions)
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500 block">
+                Observable Diagnostic Signals (4 Questions)
+              </span>
+              <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
+                Click any option to test (50 → 100 → 50)
+              </span>
+            </div>
 
             {factorData.evidence?.map((item, idx) => {
               const isHigh = item.score >= 80;
               const isMed = item.score >= 60;
-              const isLow = item.score < 60;
+              const qObj = factorQuestions.find(q => q.id === item.questionId);
+              const isEditing = editingQuestionId === item.questionId;
 
               return (
                 <div
                   key={item.questionId || idx}
-                  className="p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/60 space-y-1.5"
+                  className="p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/60 space-y-2 transition-all hover:border-slate-300"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-0.5 min-w-0">
@@ -98,15 +114,68 @@ export default function WhyThisScoreModal({ factorData, isOpen, onClose }) {
                     </span>
                   </div>
 
-                  {/* Chosen Answer */}
-                  <div className="p-2 bg-white rounded-xl border border-slate-200/60 text-xs">
-                    <span className="font-bold text-slate-900 block leading-tight">
-                      ✓ {item.answerLabel}
-                    </span>
-                    <span className="text-[11px] text-slate-500 block mt-0.5 leading-tight">
-                      {item.answerDesc}
-                    </span>
+                  {/* Active Selected Option */}
+                  <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 text-xs flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="min-w-0">
+                      <span className="font-bold text-slate-900 block leading-tight flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">{item.answerLabel}</span>
+                      </span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5 leading-tight truncate">
+                        {item.answerDesc}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingQuestionId(isEditing ? null : item.questionId)}
+                      className="text-[10px] font-extrabold text-brand-700 hover:text-brand-900 bg-brand-50 hover:bg-brand-100 px-2.5 py-1 rounded-lg border border-brand-200 shrink-0 cursor-pointer transition-colors"
+                    >
+                      {isEditing ? "Done" : "Change"}
+                    </button>
                   </div>
+
+                  {/* Interactive Option Picker Dropdown / Radio Ladder */}
+                  {isEditing && qObj && (
+                    <div className="p-2.5 bg-white rounded-xl border border-brand-200/80 space-y-1.5 animate-in fade-in-50 duration-150">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">
+                        Select new answer to test score update:
+                      </span>
+                      <div className="space-y-1">
+                        {qObj.options.map((opt) => {
+                          const isSelected = opt.score === item.score;
+                          return (
+                            <button
+                              key={opt.score}
+                              type="button"
+                              onClick={() => {
+                                handleSelectOption(item.questionId, opt.score);
+                              }}
+                              className={`w-full text-left p-2 rounded-lg border text-xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-50 border-emerald-400 text-slate-900 font-bold shadow-xs'
+                                  : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200/70 text-slate-700'
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <span className="block leading-tight truncate">{opt.label}</span>
+                                <span className="text-[10px] text-slate-400 font-normal block leading-tight truncate">
+                                  {opt.desc}
+                                </span>
+                              </div>
+                              <span className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                                isSelected
+                                  ? 'bg-emerald-200/60 text-emerald-900 border-emerald-300'
+                                  : 'bg-slate-200/50 text-slate-600 border-slate-300'
+                              }`}>
+                                {opt.score} pts
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -117,10 +186,10 @@ export default function WhyThisScoreModal({ factorData, isOpen, onClose }) {
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Fully explainable rule scoring</span>
+            <span>Fully explainable rule scoring • 100% deterministic</span>
           </div>
           <Button variant="primary" size="sm" onClick={onClose}>
-            Got it
+            Done
           </Button>
         </div>
       </div>

@@ -15,7 +15,8 @@ import {
   ArrowUpRight,
   TrendingUp,
   Video,
-  X
+  X,
+  Activity
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
 
@@ -35,6 +36,7 @@ export default function Sidebar({
 
   const navLinks = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'diagnostic', label: 'Growth Diagnostic', icon: Activity, badge: '24' },
     { id: 'roadmap', label: 'Growth Plan', icon: Target },
     { id: 'mentors', label: 'Mentors', icon: Users },
     { id: 'funding', label: 'Funding', icon: Coins },

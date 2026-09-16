@@ -18,6 +18,7 @@ import MarketingHubPage from './pages/MarketingHubPage';
 import MarketplacePage from './pages/MarketplacePage';
 import FounderProfilePage from './pages/FounderProfilePage';
 import AdminPage from './pages/AdminPage';
+import DiagnosticView from './pages/DiagnosticView';
 import LaunchReelsPage from './pages/reels/LaunchReelsPage';
 import BrandAIPage from './pages/brand-ai/BrandAIPage';
 
@@ -30,6 +31,8 @@ function AppRouter() {
     switch (currentView) {
       case 'dashboard':
         return <DashboardPage setCurrentView={setCurrentView} />;
+      case 'diagnostic':
+        return <DiagnosticView setCurrentView={setCurrentView} />;
       case 'roadmap':
         return <RoadmapPage setCurrentView={setCurrentView} />;
       case 'mentors':

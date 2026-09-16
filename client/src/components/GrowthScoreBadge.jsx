@@ -14,6 +14,7 @@ import Badge from './ui/Badge';
 import Button from './ui/Button';
 import WhyThisScoreModal from './WhyThisScoreModal';
 import HowCalculatedModal from './HowCalculatedModal';
+import { useFounder } from '../context/FounderContext';
 import { calculateGrowthDiagnostic, getMaturityColor } from '../scoring/scoringEngine';
 import { KAVYA_DEMO_ANSWERS } from '../scoring/demoAnswers';
 
@@ -24,12 +25,13 @@ export default function GrowthScoreBadge({
   founderAnswers,
   businessStage = 'Early traction'
 }) {
-  const [selectedFactor, setSelectedFactor] = useState(null);
+  const { activeFounder, updateDiagnosticAnswer } = useFounder();
+  const [selectedFactorKey, setSelectedFactorKey] = useState(null);
   const [isHowCalculatedOpen, setIsHowCalculatedOpen] = useState(false);
 
   // Compute full rule-based diagnostic dynamically
-  const answersToUse = founderAnswers || KAVYA_DEMO_ANSWERS;
-  const diagnostic = calculateGrowthDiagnostic(answersToUse, businessStage);
+  const answersToUse = activeFounder?.diagnosticAnswers || founderAnswers || KAVYA_DEMO_ANSWERS;
+  const diagnostic = calculateGrowthDiagnostic(answersToUse, activeFounder?.businessStage || businessStage);
 
   const displayScore = score !== undefined ? score : diagnostic.overallScore;
   const maturityLabel = diagnostic.maturity;
@@ -198,7 +200,7 @@ export default function GrowthScoreBadge({
                   {/* "Why this score?" Clickable Drawer Trigger */}
                   <button
                     type="button"
-                    onClick={() => setSelectedFactor(factor)}
+                    onClick={() => setSelectedFactorKey(key)}
                     className="self-start text-[11px] font-extrabold text-brand-700 hover:text-brand-900 hover:underline flex items-center gap-1 cursor-pointer pt-1 border-t border-slate-200/40 w-full"
                   >
                     <span>Why this score?</span>
@@ -220,9 +222,10 @@ export default function GrowthScoreBadge({
 
       {/* Modals */}
       <WhyThisScoreModal
-        factorData={selectedFactor}
-        isOpen={!!selectedFactor}
-        onClose={() => setSelectedFactor(null)}
+        factorData={selectedFactorKey ? diagnostic.factors[selectedFactorKey] : null}
+        isOpen={!!selectedFactorKey}
+        onClose={() => setSelectedFactorKey(null)}
+        onAnswerChange={updateDiagnosticAnswer}
       />
 
       <HowCalculatedModal
