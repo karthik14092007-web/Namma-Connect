@@ -17,19 +17,24 @@ import {
   Check
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 
 export default function LandingPage({ setCurrentView }) {
   const { loadDemoKavya } = useFounder();
+  const { isAuthenticated, loginAsDemo } = useAuth();
 
   const handleStartOnboarding = () => {
-    setCurrentView('onboarding');
+    setCurrentView(isAuthenticated ? 'onboarding' : 'signup');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLoadDemo = async () => {
+    try {
+      await loginAsDemo('kavya');
+    } catch {}
     await loadDemoKavya();
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,7 +78,7 @@ export default function LandingPage({ setCurrentView }) {
                   icon={Sparkles}
                   iconPosition="left"
                 >
-                  Build My Growth Plan
+                  {isAuthenticated ? 'Open Diagnostic' : 'Start Growing'}
                 </Button>
 
                 <Button
@@ -81,7 +86,7 @@ export default function LandingPage({ setCurrentView }) {
                   size="lg"
                   onClick={() => setCurrentView('dashboard')}
                 >
-                  Explore Platform
+                  {isAuthenticated ? 'Open Dashboard' : 'Explore Platform'}
                 </Button>
 
                 <Button

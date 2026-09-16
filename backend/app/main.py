@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db, check_database_connection
+from backend.app.core.dependencies import get_current_user
 from backend.app.api.v1 import (
     health_router,
     auth_router,
@@ -122,6 +123,29 @@ def api_legacy_health():
         "app": "Namma-Connect API (FastAPI + Supabase PostgreSQL OS)",
         "service": "namma-connect-api",
         "database": "connected" if is_db_connected else "disconnected"
+    }
+
+
+@app.get("/api/v1/me")
+@app.get("/api/me")
+def api_me_endpoint(current_user: dict = Depends(get_current_user)):
+    first_name = current_user.get("firstName", "Founder")
+    last_name = current_user.get("lastName", "")
+    full_name = f"{first_name} {last_name}".strip() or "Founder"
+    return {
+        "success": True,
+        "id": current_user.get("id"),
+        "email": current_user.get("email"),
+        "name": full_name,
+        "role": current_user.get("role", "FOUNDER"),
+        "user": {
+            "id": current_user.get("id"),
+            "email": current_user.get("email"),
+            "name": full_name,
+            "firstName": first_name,
+            "lastName": last_name,
+            "role": current_user.get("role", "FOUNDER")
+        }
     }
 
 

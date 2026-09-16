@@ -16,9 +16,11 @@ import {
   TrendingUp,
   Video,
   X,
-  Activity
+  Activity,
+  LogOut
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({
   currentView,
@@ -33,6 +35,7 @@ export default function Sidebar({
     loadDemoKavya,
     isLoading
   } = useFounder();
+  const { user, logout } = useAuth();
 
   const navLinks = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -90,14 +93,14 @@ export default function Sidebar({
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
-              {activeFounder.founderName ? activeFounder.founderName[0] : 'K'}
+              {(user?.name || activeFounder.founderName || 'F')[0]}
             </div>
             <div className="min-w-0">
               <span className="text-xs font-bold text-slate-900 truncate block leading-tight">
-                {activeFounder.brandName}
+                {user?.brandName || activeFounder.brandName}
               </span>
               <span className="text-[10px] text-slate-400 truncate block">
-                {activeFounder.founderName} • {activeFounder.location.split(',')[0]}
+                {user?.name || activeFounder.founderName} • {user?.role || 'FOUNDER'}
               </span>
             </div>
           </div>
@@ -176,15 +179,22 @@ export default function Sidebar({
         </div>
       </nav>
 
-      {/* Footer / Exit to Landing */}
-      <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs">
+      {/* Footer: User profile & Logout */}
+      <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-1">
         <button
-          onClick={() => handleNav('landing')}
-          className="text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1 cursor-pointer"
+          onClick={async () => {
+            await logout();
+            handleNav('login');
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
         >
-          <span>← Back to Landing</span>
+          <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-600" />
+          <span>Sign Out</span>
         </button>
-        <span className="text-[10px] text-slate-400 font-mono">v1.0 Demo</span>
+        <div className="flex items-center justify-between px-3 text-[10px] text-slate-400">
+          <span className="truncate max-w-[120px]">{user?.email || 'Authenticated'}</span>
+          <span className="font-mono uppercase font-bold text-slate-500">{user?.role || 'FOUNDER'}</span>
+        </div>
       </div>
     </div>
   );

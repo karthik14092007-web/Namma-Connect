@@ -10,6 +10,9 @@ class RegisterRequest(BaseModel):
     role: str = "FOUNDER"
     phone: Optional[str] = None
     location: Optional[str] = "Tamil Nadu"
+    brandName: Optional[str] = None
+    category: Optional[str] = "D2C Products"
+    stage: Optional[str] = "Early traction"
 
 
 class LoginRequest(BaseModel):

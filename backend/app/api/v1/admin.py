@@ -11,7 +11,10 @@ router = APIRouter(tags=["Admin"])
 
 @router.get("/analytics")
 @router.get("/metrics")
-def get_analytics(db: Session = Depends(get_db)):
+def get_analytics(
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     metrics = admin_service.get_admin_metrics(db)
     return {
         "success": True,

@@ -8,9 +8,11 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function PublicNavbar({ setCurrentView }) {
-  const { loadDemoKavya, isLoading, activeFounder } = useFounder();
+  const { loadDemoKavya, isLoading: isFounderLoading, activeFounder } = useFounder();
+  const { user, isAuthenticated, loginAsDemo } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleNavClick = (viewId) => {
@@ -20,6 +22,11 @@ export default function PublicNavbar({ setCurrentView }) {
   };
 
   const handleDemoClick = async () => {
+    try {
+      await loginAsDemo('kavya');
+    } catch {
+      // Fallback
+    }
     await loadDemoKavya();
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,19 +117,31 @@ export default function PublicNavbar({ setCurrentView }) {
 
           {/* Right Action CTAs */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleNavClick('dashboard')}
-              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 cursor-pointer hidden sm:block"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => handleNavClick('onboarding')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-              <span>Get Started</span>
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={() => handleNavClick('dashboard')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition-all cursor-pointer"
+              >
+                <span>Open Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleNavClick('login')}
+                  className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 cursor-pointer hidden sm:block"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => handleNavClick('signup')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                  <span>Get Started</span>
+                </button>
+              </>
+            )}
 
             {/* Mobile hamburger */}
             <button

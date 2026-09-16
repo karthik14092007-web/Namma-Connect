@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Menu,
   Bell,
@@ -7,9 +7,14 @@ import {
   CheckCircle2,
   TrendingUp,
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  LogOut,
+  UserCheck,
+  ChevronDown,
+  User
 } from 'lucide-react';
 import { useFounder } from '../context/FounderContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function AppHeader({
   currentView,
@@ -23,9 +28,23 @@ export default function AppHeader({
     loadDemoKavya,
     isLoading
   } = useFounder();
+  const { user, logout } = useAuth();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const viewTitles = {
     dashboard: 'Growth Overview',
+    diagnostic: '24-Signal Growth Diagnostic',
     roadmap: '30-Day Growth Plan',
     mentors: 'Smart Mentor Matching',
     'mentor-profile': 'Mentor Profile',
@@ -106,6 +125,81 @@ export default function AppHeader({
           <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
           <span>New Assessment</span>
         </button>
+
+        {/* User Profile Menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+          >
+            <div className="w-8 h-8 rounded-lg bg-brand-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              {(user?.name || activeFounder.founderName || 'F')[0]}
+            </div>
+            <div className="hidden lg:block text-left">
+              <span className="text-xs font-bold text-slate-800 block leading-tight truncate max-w-[100px]">
+                {user?.name || activeFounder.founderName}
+              </span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block -mt-0.5">
+                {user?.role || 'FOUNDER'}
+              </span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+
+          {profileMenuOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-2 z-50 animate-in fade-in zoom-in-95">
+              <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                <span className="text-xs font-bold text-slate-900 block truncate">
+                  {user?.name || activeFounder.founderName}
+                </span>
+                <span className="text-[11px] text-slate-400 block truncate">
+                  {user?.email || 'authenticated'}
+                </span>
+                <div className="mt-1">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
+                    {user?.role || 'FOUNDER'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setCurrentView('profile');
+                  setProfileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+              >
+                <UserCheck className="w-4 h-4 text-slate-400" />
+                <span>My Brand Profile</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentView('onboarding');
+                  setProfileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-slate-400" />
+                <span>Re-Take Diagnostic</span>
+              </button>
+
+              <div className="pt-1 mt-1 border-t border-slate-100">
+                <button
+                  onClick={async () => {
+                    setProfileMenuOpen(false);
+                    await logout();
+                    setCurrentView('login');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 text-rose-500" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

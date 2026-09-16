@@ -80,7 +80,16 @@ export default function DashboardPage({ setCurrentView }) {
             <Target className="w-4 h-4 text-brand-600" />
             <span>Growth Readiness Diagnostic (Where is my business today?)</span>
           </h2>
-          <span className="text-xs text-slate-400 hidden sm:inline">6 Factors • 24 Observable Signals</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-400 hidden sm:inline">6 Factors • 24 Observable Signals</span>
+            <button
+              onClick={() => setCurrentView('diagnostic')}
+              className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Explore All 24 Questions</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <GrowthScoreBadge

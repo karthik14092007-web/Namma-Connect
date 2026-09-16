@@ -6,6 +6,7 @@ from backend.app.core.database import get_db
 from backend.app.core.security import hash_password, verify_password, create_access_token
 from backend.app.core.dependencies import get_current_user
 from backend.app.models.user import User, FounderProfile
+from backend.app.models.business import Business
 from backend.app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, UserResponse
 from backend.app.services.audit_service import log_audit
 
@@ -24,11 +25,14 @@ def register(data: RegisterRequest, request: Request, db: Session = Depends(get_
                 detail="An account with this email address already exists"
             )
 
-    role = "FOUNDER" if data.role.upper() == "ADMIN" else data.role.upper()
+    role = "FOUNDER"
     pwd = data.password or "NammaConnect@2026"
     pwd_hash = hash_password(pwd)
+    import uuid
+    user_id = f"usr-{uuid.uuid4()}"
 
     user = User(
+        id=user_id,
         email=email,
         password_hash=pwd_hash,
         first_name=(data.firstName or "Founder").strip(),
@@ -48,10 +52,21 @@ def register(data: RegisterRequest, request: Request, db: Session = Depends(get_
                 user_id=user.id,
                 location=data.location or "Tamil Nadu",
                 state="Tamil Nadu",
-                city="Chennai",
+                city=(data.location or "Chennai").split(",")[0].strip(),
                 preferred_language="English"
             )
             db.add(profile)
+            if data.brandName:
+                biz = Business(
+                    founder_id=user.id,
+                    name=data.brandName.strip(),
+                    category=data.category or "D2C Products",
+                    description=f"{data.brandName} D2C Brand",
+                    location=data.location or "Tamil Nadu",
+                    stage=(data.stage or "Early traction").upper().replace(" ", "_"),
+                    monthly_revenue="₹0 - ₹1L"
+                )
+                db.add(biz)
             db.commit()
 
         client_ip = request.client.host if request.client else None
@@ -167,13 +182,21 @@ def logout(current_user: dict = Depends(get_current_user)):
 
 @router.get("/me")
 def get_me(current_user: dict = Depends(get_current_user)):
+    first_name = current_user.get("firstName", "Founder")
+    last_name = current_user.get("lastName", "")
+    full_name = f"{first_name} {last_name}".strip() or "Founder"
     return {
         "success": True,
+        "id": current_user.get("id"),
+        "email": current_user.get("email"),
+        "name": full_name,
+        "role": current_user.get("role", "FOUNDER"),
         "user": {
             "id": current_user.get("id"),
             "email": current_user.get("email"),
-            "firstName": current_user.get("firstName", "Founder"),
-            "lastName": current_user.get("lastName", ""),
+            "name": full_name,
+            "firstName": first_name,
+            "lastName": last_name,
             "role": current_user.get("role", "FOUNDER")
         }
     }
