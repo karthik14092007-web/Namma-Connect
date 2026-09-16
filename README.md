@@ -75,8 +75,10 @@ Every match card features a **"Why this match? →"** button that reveals:
 ## 🛠️ Tech Stack & Architecture
 
 - **Frontend**: React 18, Vite, Tailwind CSS, Lucide React, Recharts
-- **Backend**: Node.js, Express.js REST API
-- **Database**: MongoDB with Mongoose + Automatic In-Memory / JSON Resilient Store (Zero-config setup: runs smoothly with or without a local MongoDB service)
+- **Modern Backend API**: Python 3.11+ / FastAPI, Pydantic v2, SQLAlchemy 2.x, Alembic, Supabase Auth (JWT), Uvicorn
+- **Database & Auth**: Supabase PostgreSQL + Supabase JWT Auth (with non-blocking active probe and zero-dependency benchmark failover)
+- **API Documentation**: Interactive OpenAPI Swagger UI (`/docs`) & ReDoc (`/redoc`)
+- **Compatibility Layer**: Complete 1:1 REST contract parity supporting both `/api/v1/...` and legacy `/api/...` endpoints
 
 ---
 
@@ -84,22 +86,50 @@ Every match card features a **"Why this match? →"** button that reveals:
 
 ### 1. Install Dependencies
 ```bash
-npm run install-all
+# Python Backend Dependencies
+pip install -r backend/requirements.txt
+
+# React Frontend Dependencies
+npm --prefix client install
 ```
 
-### 2. Start the Server (Hosts API + Built Frontend on Port 5000)
+### 2. Configure Environment Variables
+Create or verify `backend/.env`:
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+DATABASE_URL=postgresql://postgres:yourpassword@db.yourproject.supabase.co:5432/postgres
+PORT=5000
+```
+
+### 3. Start the FastAPI Backend (Port 5000)
 ```bash
-npm start
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 5000 --reload
 ```
-Open **http://localhost:5000** in your browser.
+- API Health: **http://localhost:5000/api/v1/health**
+- Kavya Demo Persona: **http://localhost:5000/api/demo/kavya**
+- Interactive Swagger UI: **http://localhost:5000/docs**
+- ReDoc API Manual: **http://localhost:5000/redoc**
 
-### 3. (Optional) Run Vite Frontend in Hot-Reload Dev Mode
+### 4. Start the Frontend Client (Port 5173)
 ```bash
 npm run client
+# Or: cd client && npm run dev
 ```
-Open **http://localhost:5173** in your browser.
+Open **http://localhost:5173** in your browser. (The Vite dev server proxies `/api` and `/api/v1` calls to `http://localhost:5000`).
 
-### 4. Run Automated Verification Tests
+### 5. Seed Benchmark Data (Optional)
 ```bash
+python backend/seed.py
+```
+
+### 6. Run Automated Verification Tests
+```bash
+# Run Python Backend Test Suite (Pytest)
+python -m pytest backend/tests -v
+
+# Run End-to-End Contract Verification Suite
 node server/test_full_suite.js
 ```

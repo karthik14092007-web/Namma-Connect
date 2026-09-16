@@ -1,6 +1,11 @@
 # Namma-Connect API Reference Manual (v1)
 
-Welcome to the **Namma-Connect** Production REST API. This document details all available endpoints, authentication mechanisms, validation constraints, error codes, and compatibility routes.
+Welcome to the **Namma-Connect** Production REST API powered by **FastAPI** and **Supabase PostgreSQL**. This document details all available endpoints, authentication mechanisms, validation constraints, error codes, and compatibility routes.
+
+### Interactive API Documentation
+- **Swagger Interactive UI:** [http://localhost:5000/docs](http://localhost:5000/docs)
+- **ReDoc Manual:** [http://localhost:5000/redoc](http://localhost:5000/redoc)
+- **OpenAPI 3.1 JSON Specification:** [http://localhost:5000/openapi.json](http://localhost:5000/openapi.json)
 
 ---
 
@@ -12,13 +17,12 @@ Welcome to the **Namma-Connect** Production REST API. This document details all 
 - Legacy Compat: `http://localhost:5000/api`
 
 ### Token System
-- **Access Token:** Short-lived JWT (15-minute expiry) signed with `JWT_SECRET`. Transmitted in HTTP Header:
+- **Access Token:** Short-lived Supabase Auth JWT or HS256 Bearer token signed with `SUPABASE_JWT_SECRET` / `JWT_SECRET`. Transmitted in HTTP Header:
   ```http
   Authorization: Bearer <access_token>
   ```
-- **Refresh Token:** Long-lived token (7-day expiry) stored as a secure SHA-256 hash in PostgreSQL and passed via an `HttpOnly`, `SameSite=Strict`, `Secure` cookie named `refreshToken`.
 - **RBAC Roles:** `FOUNDER`, `MENTOR`, `INVESTOR`, `ADMIN`.
-- **Multi-Tenant Ownership:** Endpoints mutating or reading business-specific resources enforce `requireOwnership` guards to block IDOR / cross-tenant leaks.
+- **Multi-Tenant Ownership:** Endpoints mutating or reading business-specific resources enforce `check_resource_ownership` guards to block IDOR / cross-tenant data leaks.
 
 ### Standard Response Envelope
 Successful responses return JSON with status `200` or `201`:
@@ -41,11 +45,11 @@ Failed responses return appropriate HTTP status codes with machine-readable erro
 
 | HTTP Status | Code | Meaning |
 | :--- | :--- | :--- |
-| `400` | `VALIDATION_ERROR` | Request body or query parameters failed Zod schema checks |
+| `400` | `VALIDATION_ERROR` | Request body or query parameters failed Pydantic v2 schema checks |
 | `401` | `AUTHENTICATION_REQUIRED` | Missing, malformed, or expired access token |
 | `403` | `FORBIDDEN` | Insufficient role or attempt to access another tenant's resource |
 | `404` | `NOT_FOUND` | Requested entity does not exist |
-| `429` | `RATE_LIMIT_EXCEEDED` | Too many requests sent from this IP |
+| `422` | `UNPROCESSABLE_ENTITY` | Unprocessable entity / type validation failure |
 | `500` | `INTERNAL_SERVER_ERROR` | Unhandled server exception |
 
 ---

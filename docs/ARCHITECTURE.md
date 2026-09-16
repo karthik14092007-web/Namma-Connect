@@ -20,48 +20,48 @@ This document details the architectural foundation, data flow, diagnostic scorin
                                           | HTTPS / REST JSON
                                           v
 +-----------------------------------------------------------------------------------+
-|                             API GATEWAY & MIDDLEWARE                              |
-|  - Helmet HTTP Security Headers (HSTS, CSP, X-Frame-Options)                       |
+|                             API GATEWAY & FASTAPI MIDDLEWARE                      |
 |  - CORS Policy (Configurable client origin, credentials enabled)                  |
-|  - IP Rate Limiting (API: 200 req/15m, Auth: 30 req/15m)                          |
-|  - Cookie Parser (HttpOnly refreshToken extraction)                               |
-|  - JWT Authentication (Bearer token verification, 15-min TTL)                     |
-|  - RBAC & Resource Ownership Guards (requireAuth, requireRole, requireOwnership) |
-|  - Zod Request Validation Schemas (Strict input sanitization)                     |
+|  - Supabase JWT Verification (Bearer token decoding & sub/role claim extraction)  |
+|  - Pydantic v2 Schema Validation (Strict request and response envelope models)    |
+|  - Dependency Injection (FastAPI Depends: get_db, get_current_user, require_role) |
+|  - Multi-Tenant Ownership Verification (check_resource_ownership)                 |
+|  - Active Database Health Probe (Non-blocking sub-0.15s socket check + SELECT 1)  |
 +-----------------------------------------+-----------------------------------------+
                                           |
                                           v
 +-----------------------------------------------------------------------------------+
-|                              EXPRESS SERVICE LAYER                                |
+|                              FASTAPI SERVICE & RULES LAYER                        |
 |  +---------------------------+  +---------------------------+  +----------------+ |
-|  | Diagnostic Scoring Engine |  | Recommendation Engine     |  | Mentor Matcher | |
-|  | - 24 Rubric Questions     |  | - Top Gap Prioritization  |  | - Stage & Hub  | |
+|  | Diagnostic Scoring Rules  |  | Growth & Roadmap Service  |  | Mentor Matcher | |
+|  | - 24 Observable Questions |  | - Top Gap Prioritization  |  | - Stage & Hub  | |
 |  | - Arithmetic Factor Calc  |  | - Next Best Action Gen    |  | - Weak Area    | |
 |  | - Stage-Weighted Overall  |  | - 30-60-90 Day Milestones |  | - Match Reason | |
 |  +---------------------------+  +---------------------------+  +----------------+ |
 |  +---------------------------+  +---------------------------+  +----------------+ |
 |  | Campaign & Reels Service  |  | Funding Matching Engine   |  | Auth & Audit   | |
-|  | - Regional Targeting      |  | - Criteria Evaluation     |  | - Token Rotate | |
-|  | - Synthetic Analytics     |  | - Application Lifecycle   |  | - Audit Logger | |
+|  | - Regional Targeting      |  | - Criteria Evaluation     |  | - Passlib Hash | |
+|  | - Telemetry & Analytics   |  | - Application Lifecycle   |  | - Audit Logger | |
 |  +---------------------------+  +---------------------------+  +----------------+ |
 +-----------------------------------------+-----------------------------------------+
                                           |
                                           v
 +-----------------------------------------------------------------------------------+
-|                                PRISMA ORM LAYER                                   |
-|  - Type-safe query building and relational joins                                  |
-|  - Seed orchestration & transaction safety                                        |
-|  - Seamless in-memory fallback proxy for resilient zero-dependency execution      |
+|                          SQLALCHEMY 2.x & ALEMBIC ORM LAYER                       |
+|  - 18 Declarative Relational Models (User, Business, Assessment, Mentors, etc.)   |
+|  - Psycopg 3 Driver with Connection Pooling & Sanitized Database URL              |
+|  - Non-blocking failover to deterministic benchmark repository when DB is offline |
+|  - Alembic automatic migrations tracking schema revisions                         |
 +-----------------------------------------+-----------------------------------------+
                                           |
                                           v
 +-----------------------------------------------------------------------------------+
-|                           POSTGRESQL DATABASE ENGINE                              |
-|  19 Normalized Relational Tables:                                                 |
-|  - User, FounderProfile, Business, DiagnosticAssessment, DiagnosticResponse       |
-|  - DiagnosticFactorScore, GrowthPlan, GrowthAction, MentorProfile, MentorMatch     |
-|  - FundingOpportunity, FundingApplication, Campaign, CampaignAudience             |
-|  - CampaignAnalytics, MarketplaceProduct, Notification, RefreshToken, AuditLog    |
+|                         SUPABASE POSTGRESQL DATABASE ENGINE                       |
+|  Normalized Relational Schema:                                                    |
+|  - users, founder_profiles, businesses, diagnostic_assessments, responses         |
+|  - factor_scores, growth_plans, growth_actions, mentor_profiles, mentor_matches    |
+|  - funding_opportunities, funding_applications, campaigns, campaign_audiences      |
+|  - campaign_analytics, marketplace_products, notifications, audit_logs            |
 +-----------------------------------------------------------------------------------+
 ```
 
@@ -134,52 +134,54 @@ The diagnostic engine automatically extracts the **Top 2 Gaps** (e.g. Unit Econo
 
 ## 3. Security & Access Control Model
 
-### 3.1 Authentication
-- **Dual-Token Architecture:** 15-minute stateless JWT access token alongside a 7-day stateful refresh token.
-- **Refresh Token Storage:** Stored as cryptographic SHA-256 hashes in the database. Token reuse detection revokes all tokens for compromised accounts.
-- **Cookies:** Refresh tokens are transmitted exclusively through `HttpOnly`, `SameSite=Strict`, `Secure` cookies, impervious to client-side XSS exfiltration.
+### 3.1 Authentication & Token System
+- **Supabase JWT Integration:** Accepts standard Supabase Auth JWT tokens or locally minted fallback HS256 tokens signed with `SUPABASE_JWT_SECRET` / `JWT_SECRET`.
+- **Stateless Bearer Extraction:** Tokens are passed via standard HTTP header:
+  ```http
+  Authorization: Bearer <access_token>
+  ```
+- **Claim Resolution:** The FastAPI dependency `get_current_user` extracts `sub`, `email`, `role`, and `app_metadata` to build the authenticated `User` context.
 
 ### 3.2 Authorization (RBAC + Ownership)
 1. **Role-Based Access Control (RBAC):**
    - `FOUNDER`: Can manage own business, submit diagnostics, create campaigns, request mentors.
    - `MENTOR`: Can view assigned mentee profiles and confirm session requests.
    - `INVESTOR`: Can review vetted founder profiles and funding applications.
-   - `ADMIN`: Full administrative visibility over platform metrics and audit logs.
-2. **Resource Ownership Guard (`requireOwnership`):**
-   - Validates that the resource's `founderId` or `businessId` matches the authenticated caller's identity.
-   - Prevents Insecure Direct Object References (IDOR): Founder A cannot inspect, edit, or delete Founder B's diagnostic scores or campaigns.
+   - `ADMIN`: Full administrative visibility over platform metrics and audit logs (`require_admin`).
+2. **Resource Ownership Guard (`check_resource_ownership`):**
+   - Validates that the resource's `founder_id` or `business_id` matches the authenticated caller's identity.
+   - Prevents Insecure Direct Object References (IDOR): Founder A cannot inspect, edit, or delete Founder B's diagnostic scores, growth plans, or campaigns.
 
 ### 3.3 Defensive Hardening
-- **Helmet:** Eliminates HTTP header disclosures and enforces browser protections.
-- **Express Rate Limiting:** Enforces sliding-window rate caps on public auth endpoints (30 reqs/15m) and general API routes (200 reqs/15m).
-- **Zod Validation:** Rejects unvetted or unexpected payload keys before hitting controllers.
-- **Password Security:** Salted hashes generated with bcrypt using 12 computational rounds.
+- **Pydantic v2 Input Validation:** Rejects malformed types, unexpected keys, and invalid ranges before requests hit the service layer.
+- **Psycopg 3 URL Sanitizer:** Automatically strips conflicting connection parameters (`?schema=public`) and sanitizes connection strings.
+- **Password Hashing:** Passwords hashed with `passlib` bcrypt using 12 computational rounds.
+- **Active Connection Probing:** Sub-0.15s socket verification before database query attempts prevents thread starvation and hangs when Supabase or PostgreSQL is temporarily unreachable.
 
 ---
 
-## 4. Relational Database Schema (Prisma ORM)
+## 4. Relational Database Schema (SQLAlchemy 2.x & Alembic)
 
-The relational schema is defined in `prisma/schema.prisma` targeting PostgreSQL across 19 normalized models:
+The relational schema is defined across 18 declarative SQLAlchemy models in `backend/app/models/` and tracked with Alembic migrations:
 
-1. **`User`**: Account identity, email, password hash, role (`FOUNDER`, `MENTOR`, `INVESTOR`, `ADMIN`).
+1. **`User`** (`backend/app/models/user.py`): Account identity, email, password hash, role (`FOUNDER`, `MENTOR`, `INVESTOR`, `ADMIN`).
 2. **`FounderProfile`**: Founder bio, phone, location, district, state, preferred language.
-3. **`Business`**: Brand name, category, stage, revenue, location, target audience, channels.
-4. **`DiagnosticAssessment`**: Score snapshot, overall score, stage, scoring version, completed timestamp.
+3. **`Business`** (`backend/app/models/business.py`): Brand name, category, stage, revenue, location, target audience, channels.
+4. **`DiagnosticAssessment`** (`backend/app/models/diagnostic.py`): Score snapshot, overall score, stage, scoring version, completed timestamp.
 5. **`DiagnosticResponse`**: Individual question responses (Q1..Q24) linked to assessments.
 6. **`DiagnosticFactorScore`**: Calculated factor scores (0–100) and urgency levels per assessment.
-7. **`GrowthPlan`**: 30-60-90 day strategic roadmap container linked to assessment and business.
+7. **`GrowthPlan`** (`backend/app/models/growth.py`): 30-60-90 day strategic roadmap container linked to assessment and business.
 8. **`GrowthAction`**: Actionable milestones (Day 1–30, Day 31–60, Day 61–90) with status and metric.
-9. **`MentorProfile`**: Mentor expertise, industry tags, years of experience, regional familiarity.
+9. **`MentorProfile`** (`backend/app/models/mentor.py`): Mentor expertise, industry tags, years of experience, regional familiarity.
 10. **`MentorMatch`**: Match link between business and mentor, with match percentage and match reasons.
-11. **`FundingOpportunity`**: Grants, equity programs, debt schemes, eligibility criteria, ticket size.
+11. **`FundingOpportunity`** (`backend/app/models/funding.py`): Grants, equity programs, debt schemes, eligibility criteria, ticket size.
 12. **`FundingApplication`**: Application state machine (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`).
-13. **`Campaign`**: Regional and influencer marketing campaigns with budget and targeting parameters.
+13. **`Campaign`** (`backend/app/models/campaign.py`): Regional and influencer marketing campaigns with budget and targeting parameters.
 14. **`CampaignAudience`**: Micro-targeting configurations (districts, languages, interest clusters).
 15. **`CampaignAnalytics`**: Performance telemetry (reach, video completions, CTR, conversion rate).
-16. **`MarketplaceProduct`**: D2C product catalog entries, price, min order quantity, certifications.
-17. **`Notification`**: System alerts, milestone reminders, mentor confirmations.
-18. **`RefreshToken`**: Active session tokens with expiration and revoked status.
-19. **`AuditLog`**: Immutable compliance records capturing actor ID, action, resource, IP, and timestamp.
+16. **`MarketplaceProduct`** (`backend/app/models/marketplace.py`): D2C product catalog entries, price, min order quantity, certifications.
+17. **`Notification`** (`backend/app/models/notification.py`): System alerts, milestone reminders, mentor confirmations.
+18. **`AuditLog`** (`backend/app/models/audit.py`): Immutable compliance records capturing actor ID, action, resource, IP, and timestamp.
 
 ---
 
@@ -187,23 +189,29 @@ The relational schema is defined in `prisma/schema.prisma` targeting PostgreSQL 
 
 ### Development / Local Run
 ```bash
-# Start backend server
-cd server
-node index.js
+# 1. Start FastAPI backend (port 5000)
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 5000 --reload
 
-# Start frontend client
+# 2. Start React client in hot-reload dev mode (port 5173)
 cd client
 npm run dev
 ```
 
+### Automated Verification
+```bash
+# Run pytest test suite
+python -m pytest backend/tests -v
+
+# Run full end-to-end contract test suite
+node server/test_full_suite.js
+```
+
 ### Production Build & Deploy
 ```bash
-# Build frontend
-cd client
-npm run build
+# Build client SPA
+npm --prefix client run build
 
-# Start production server
-cd server
-NODE_ENV=production node index.js
+# Start production FastAPI server
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 5000 --workers 4
 ```
-The Express server in `server/src/app.js` will automatically serve the compiled static assets in `client/dist` when `NODE_ENV=production`.
+FastAPI in `backend/app/main.py` automatically mounts and serves the compiled static assets in `client/dist` when available.
